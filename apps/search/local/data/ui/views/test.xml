@@ -19,7 +19,7 @@
     <panel>
       <table>
         <search>
-          <query>| tstats c where index=bots* earliest=0 by sourcetype</query>
+          <query>| tstats c where index=bots* earliest=0 latest=now by sourcetype</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
         </search>

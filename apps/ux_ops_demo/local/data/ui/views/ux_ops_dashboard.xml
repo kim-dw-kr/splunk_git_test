@@ -1,0 +1,520 @@
+
+<dashboard version="2" theme="light">
+    <label>운영 대시보드 및 리포트 (데모)</label>
+    <description>데모 화면 - 샘플 데이터</description>
+    <definition><![CDATA[
+{
+	"title": "운영 대시보드 및 리포트 (데모)",
+	"description": "데모 화면 - 샘플 데이터",
+	"inputs": {
+		"input_time": {
+			"type": "input.timerange",
+			"title": "기간",
+			"options": {
+				"token": "global_time",
+				"defaultValue": "-1d@d,@d"
+			}
+		},
+		"input_a_svc": {
+			"type": "input.dropdown",
+			"title": "분석 대상",
+			"options": {
+				"items": [
+					{
+						"label": "전체 서비스",
+						"value": "*"
+					},
+					{
+						"label": "민원신청",
+						"value": "민원신청"
+					},
+					{
+						"label": "증명서발급",
+						"value": "증명서발급"
+					}
+				],
+				"token": "a_svc",
+				"defaultValue": "*"
+			}
+		},
+		"input_a_seg": {
+			"type": "input.dropdown",
+			"title": "세그먼트",
+			"options": {
+				"items": [
+					{
+						"label": "전체",
+						"value": "all"
+					},
+					{
+						"label": "디바이스",
+						"value": "device"
+					},
+					{
+						"label": "신규·재방문",
+						"value": "visitor"
+					},
+					{
+						"label": "유입채널",
+						"value": "channel"
+					}
+				],
+				"token": "a_seg",
+				"defaultValue": "channel"
+			}
+		},
+		"input_a_metric": {
+			"type": "input.dropdown",
+			"title": "지표",
+			"options": {
+				"items": [
+					{
+						"label": "방문수",
+						"value": "visits"
+					},
+					{
+						"label": "페이지뷰",
+						"value": "pv"
+					},
+					{
+						"label": "클릭",
+						"value": "clicks"
+					},
+					{
+						"label": "평균 체류시간(초)",
+						"value": "dwell"
+					},
+					{
+						"label": "평균 스크롤 깊이(%)",
+						"value": "scroll"
+					},
+					{
+						"label": "이탈률(%)",
+						"value": "bounce"
+					},
+					{
+						"label": "전환율(%)",
+						"value": "conv"
+					}
+				],
+				"token": "a_metric",
+				"defaultValue": "visits"
+			}
+		}
+	},
+	"defaults": {
+		"dataSources": {
+			"ds.search": {
+				"options": {
+					"queryParameters": {
+						"earliest": "$global_time.earliest$",
+						"latest": "$global_time.latest$"
+					}
+				}
+			}
+		}
+	},
+	"dataSources": {
+		"ds_base": {
+			"type": "ds.search",
+			"name": "세션 집계",
+			"options": {
+				"query": "index=ux_ops_demo (sourcetype=\"ux:event\" OR sourcetype=\"ux:session\" OR (sourcetype=\"ux:engage\" event_type=\"page_engage\")) | eval pv=if(sourcetype=\"ux:event\" AND event_type=\"page_view\",1,0), clk=if(sourcetype=\"ux:event\" AND (event_type=\"click\" OR event_type=\"rage_click\"),1,0), cv=if(event_type=\"apply_complete\",1,0), svc_ux=if(sourcetype=\"ux:event\",service,null()) | stats min(_time) as _time sum(pv) as pv sum(clk) as clk max(cv) as conv sum(dwell_sec) as dwell avg(max_scroll_pct) as scroll values(channel) as channel values(visitor_type) as vtype values(device) as device values(svc_ux) as svc by session_id | where pv>0"
+			}
+		},
+		"ds_k1": {
+			"type": "ds.chain",
+			"name": "방문",
+			"options": {
+				"extend": "ds_base",
+				"query": "| stats count as v"
+			}
+		},
+		"ds_k2": {
+			"type": "ds.chain",
+			"name": "클릭",
+			"options": {
+				"extend": "ds_base",
+				"query": "| stats sum(clk) as v"
+			}
+		},
+		"ds_k3": {
+			"type": "ds.chain",
+			"name": "스크롤",
+			"options": {
+				"extend": "ds_base",
+				"query": "| stats avg(scroll) as v | eval v=round(v,1)"
+			}
+		},
+		"ds_k4": {
+			"type": "ds.chain",
+			"name": "체류",
+			"options": {
+				"extend": "ds_base",
+				"query": "| stats avg(dwell) as v | eval v=round(v), v=floor(v/60).\"분 \".(v%60).\"초\""
+			}
+		},
+		"ds_k5": {
+			"type": "ds.chain",
+			"name": "이탈",
+			"options": {
+				"extend": "ds_base",
+				"query": "| stats avg(eval(if(pv=1,1,0))) as v | eval v=round(v*100,1)"
+			}
+		},
+		"ds_k6": {
+			"type": "ds.chain",
+			"name": "전환",
+			"options": {
+				"extend": "ds_base",
+				"query": "| stats avg(conv) as v | eval v=round(v*100,1)"
+			}
+		},
+		"ds_channel": {
+			"type": "ds.chain",
+			"name": "유입경로",
+			"options": {
+				"extend": "ds_base",
+				"query": "| stats count as n avg(conv) as c by channel | eval c=round(c*100,1) | sort - n | table channel n c | rename channel as \"유입경로\", n as \"방문\", c as \"전환율(%)\""
+			}
+		},
+		"ds_custom": {
+			"type": "ds.chain",
+			"name": "사용자 정의 추이",
+			"options": {
+				"extend": "ds_base",
+				"query": "| search svc=\"$a_svc$\" | eval seg=case(\"$a_seg$\"=\"device\",device, \"$a_seg$\"=\"visitor\",vtype, \"$a_seg$\"=\"channel\",channel, true(),\"전체\") | bin _time span=1h | stats count as visits sum(pv) as pvs sum(clk) as clicks avg(dwell) as dwell avg(scroll) as scroll avg(eval(if(pv=1,1,0))) as bounce avg(conv) as conv by _time seg | eval v=case(\"$a_metric$\"=\"visits\",visits, \"$a_metric$\"=\"pv\",pvs, \"$a_metric$\"=\"clicks\",clicks, \"$a_metric$\"=\"dwell\",round(dwell), \"$a_metric$\"=\"scroll\",round(scroll,1), \"$a_metric$\"=\"bounce\",round(bounce*100,1), \"$a_metric$\"=\"conv\",round(conv*100,1)) | xyseries _time seg v"
+			}
+		},
+		"ds_custom_tbl": {
+			"type": "ds.chain",
+			"name": "사용자 정의 표",
+			"options": {
+				"extend": "ds_base",
+				"query": "| search svc=\"$a_svc$\" | eval seg=case(\"$a_seg$\"=\"device\",device, \"$a_seg$\"=\"visitor\",vtype, \"$a_seg$\"=\"channel\",channel, true(),\"전체\") | stats count as n sum(pv) as p sum(clk) as k avg(dwell) as d avg(scroll) as s avg(eval(if(pv=1,1,0))) as b avg(conv) as c by seg | eval d=round(d), s=round(s,1), b=round(b*100,1), c=round(c*100,1) | sort - n | table seg n p k d s b c | rename seg as \"세그먼트\", n as \"방문\", p as \"페이지뷰\", k as \"클릭\", d as \"평균 체류(초)\", s as \"평균 스크롤(%)\", b as \"이탈률(%)\", c as \"전환율(%)\""
+			}
+		},
+		"ds_reports": {
+			"type": "ds.search",
+			"name": "정기 리포트",
+			"options": {
+				"query": "| rest /servicesNS/-/ux_ops_demo/saved/searches splunk_server=local count=0 | search eai:acl.app=\"ux_ops_demo\" | eval fmt=mvjoin(mvappend(if('action.email.sendcsv'=\"1\",\"CSV\",null()), if('action.email.sendpdf'=\"1\",\"PDF\",null())),\", \") | table title description fmt next_scheduled_time action.email.to | rename title as \"리포트\", description as \"주기\", fmt as \"형식\", next_scheduled_time as \"다음 실행\", action.email.to as \"수신\"",
+				"queryParameters": {
+					"earliest": "-1m",
+					"latest": "now"
+				}
+			}
+		}
+	},
+	"visualizations": {
+		"viz_header": {
+			"type": "splunk.markdown",
+			"options": {
+				"markdown": "## 운영 대시보드 및 리포트\n※ 데모 화면 — 가상 민원 서비스 샘플 데이터",
+				"fontColor": "#1F2933"
+			}
+		},
+		"viz_k_label": {
+			"type": "splunk.markdown",
+			"options": {
+				"markdown": "**① 주요 지표 통합** — 방문 · 클릭 · 스크롤 · 체류시간 · 이탈 · 전환 · 유입경로",
+				"fontColor": "#1F2933"
+			}
+		},
+		"viz_k1": {
+			"type": "splunk.singlevalue",
+			"title": "방문(세션)",
+			"dataSources": {
+				"primary": "ds_k1"
+			},
+			"options": {
+				"majorFontSize": 36,
+				"unit": "회",
+				"unitPosition": "after"
+			}
+		},
+		"viz_k2": {
+			"type": "splunk.singlevalue",
+			"title": "클릭",
+			"dataSources": {
+				"primary": "ds_k2"
+			},
+			"options": {
+				"majorFontSize": 36,
+				"unit": "회",
+				"unitPosition": "after"
+			}
+		},
+		"viz_k3": {
+			"type": "splunk.singlevalue",
+			"title": "평균 스크롤 깊이",
+			"dataSources": {
+				"primary": "ds_k3"
+			},
+			"options": {
+				"majorFontSize": 36,
+				"unit": "%",
+				"unitPosition": "after"
+			}
+		},
+		"viz_k4": {
+			"type": "splunk.singlevalue",
+			"title": "평균 체류시간",
+			"dataSources": {
+				"primary": "ds_k4"
+			},
+			"options": {
+				"majorFontSize": 36
+			}
+		},
+		"viz_k5": {
+			"type": "splunk.singlevalue",
+			"title": "이탈률 (첫 화면 이탈)",
+			"dataSources": {
+				"primary": "ds_k5"
+			},
+			"options": {
+				"majorFontSize": 36,
+				"unit": "%",
+				"unitPosition": "after",
+				"majorColor": "#D6333A"
+			}
+		},
+		"viz_k6": {
+			"type": "splunk.singlevalue",
+			"title": "전환율",
+			"dataSources": {
+				"primary": "ds_k6"
+			},
+			"options": {
+				"majorFontSize": 36,
+				"unit": "%",
+				"unitPosition": "after",
+				"majorColor": "#2E8540"
+			}
+		},
+		"viz_channel": {
+			"type": "splunk.column",
+			"title": "① 유입경로별 방문·전환율",
+			"dataSources": {
+				"primary": "ds_channel"
+			},
+			"options": {
+				"overlayFields": [
+					"전환율(%)"
+				],
+				"showOverlayY2Axis": true,
+				"seriesColorsByField": {
+					"방문": "#5A8DEE",
+					"전환율(%)": "#2E8540"
+				},
+				"legendDisplay": "top",
+				"xAxisTitleVisibility": "hide",
+				"yAxisTitleText": "방문",
+				"y2AxisTitleText": "전환율(%)"
+			}
+		},
+		"viz_rep": {
+			"type": "splunk.table",
+			"title": "③ 정기 리포트 (일간·주간·월간) · CSV/PDF 저장",
+			"description": "예약 실행 결과를 CSV·PDF 첨부로 자동 발송, 대시보드·검색 결과는 CSV/PDF 내보내기 지원",
+			"dataSources": {
+				"primary": "ds_reports"
+			},
+			"options": {}
+		},
+		"viz_c_hdr": {
+			"type": "splunk.markdown",
+			"options": {
+				"markdown": "### ② 사용자 정의 리포트 — 상단에서 분석 대상 · 기간 · 세그먼트 · 지표 선택",
+				"fontColor": "#1F2933"
+			}
+		},
+		"viz_custom": {
+			"type": "splunk.line",
+			"title": "선택 지표 시간대별 추이 (세그먼트별)",
+			"dataSources": {
+				"primary": "ds_custom"
+			},
+			"options": {
+				"legendDisplay": "right",
+				"xAxisTitleVisibility": "hide",
+				"yAxisTitleVisibility": "hide"
+			}
+		},
+		"viz_custom_tbl": {
+			"type": "splunk.table",
+			"title": "세그먼트별 지표 요약",
+			"dataSources": {
+				"primary": "ds_custom_tbl"
+			},
+			"options": {}
+		}
+	},
+	"applicationProperties": {
+		"hideEdit": false,
+		"hideExport": false,
+		"hideOpenInSearch": false
+	},
+	"layout": {
+		"tabs": {
+			"items": [
+				{
+					"layoutId": "layout_1",
+					"label": "새 탭"
+				}
+			]
+		},
+		"layoutDefinitions": {
+			"layout_1": {
+				"type": "absolute",
+				"options": {
+					"width": 1440,
+					"height": 860,
+					"display": "auto-scale",
+					"backgroundColor": "#F5F6F8"
+				},
+				"structure": [
+					{
+						"item": "viz_header",
+						"type": "block",
+						"position": {
+							"x": 0,
+							"y": -10,
+							"w": 1440,
+							"h": 60
+						}
+					},
+					{
+						"item": "viz_k_label",
+						"type": "block",
+						"position": {
+							"x": 0,
+							"y": 55,
+							"w": 1440,
+							"h": 30
+						}
+					},
+					{
+						"item": "viz_k1",
+						"type": "block",
+						"position": {
+							"x": 0,
+							"y": 85,
+							"w": 230,
+							"h": 100
+						}
+					},
+					{
+						"item": "viz_k2",
+						"type": "block",
+						"position": {
+							"x": 240,
+							"y": 85,
+							"w": 230,
+							"h": 100
+						}
+					},
+					{
+						"item": "viz_k3",
+						"type": "block",
+						"position": {
+							"x": 480,
+							"y": 85,
+							"w": 230,
+							"h": 100
+						}
+					},
+					{
+						"item": "viz_k4",
+						"type": "block",
+						"position": {
+							"x": 720,
+							"y": 85,
+							"w": 230,
+							"h": 100
+						}
+					},
+					{
+						"item": "viz_k5",
+						"type": "block",
+						"position": {
+							"x": 960,
+							"y": 85,
+							"w": 230,
+							"h": 100
+						}
+					},
+					{
+						"item": "viz_k6",
+						"type": "block",
+						"position": {
+							"x": 1200,
+							"y": 85,
+							"w": 230,
+							"h": 100
+						}
+					},
+					{
+						"item": "viz_channel",
+						"type": "block",
+						"position": {
+							"x": 0,
+							"y": 195,
+							"w": 560,
+							"h": 330
+						}
+					},
+					{
+						"item": "viz_rep",
+						"type": "block",
+						"position": {
+							"x": 0,
+							"y": 535,
+							"w": 560,
+							"h": 315
+						}
+					},
+					{
+						"item": "viz_c_hdr",
+						"type": "block",
+						"position": {
+							"x": 570,
+							"y": 195,
+							"w": 870,
+							"h": 40
+						}
+					},
+					{
+						"item": "viz_custom",
+						"type": "block",
+						"position": {
+							"x": 570,
+							"y": 240,
+							"w": 870,
+							"h": 360
+						}
+					},
+					{
+						"item": "viz_custom_tbl",
+						"type": "block",
+						"position": {
+							"x": 570,
+							"y": 610,
+							"w": 870,
+							"h": 240
+						}
+					}
+				]
+			}
+		},
+		"globalInputs": [
+			"input_time",
+			"input_a_svc",
+			"input_a_seg",
+			"input_a_metric"
+		]
+	}
+}
+    ]]></definition>
+</dashboard>

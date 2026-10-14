@@ -1,0 +1,372 @@
+
+<dashboard version="2" theme="light">
+    <label>분석 대상 및 수집관리 (데모)</label>
+    <description>데모 화면 - 샘플 데이터</description>
+    <definition><![CDATA[
+{
+	"title": "분석 대상 및 수집관리 (데모)",
+	"description": "데모 화면 - 샘플 데이터",
+	"inputs": {
+		"input_time": {
+			"type": "input.timerange",
+			"title": "기간",
+			"options": {
+				"token": "global_time",
+				"defaultValue": "-1d@d,@d"
+			}
+		}
+	},
+	"defaults": {
+		"dataSources": {
+			"ds.search": {
+				"options": {
+					"queryParameters": {
+						"earliest": "$global_time.earliest$",
+						"latest": "$global_time.latest$"
+					}
+				}
+			}
+		}
+	},
+	"dataSources": {
+		"ds_chk": {
+			"type": "ds.search",
+			"name": "수집 점검",
+			"options": {
+				"query": "| inputlookup ux_target_pages | append [search index=ux_ops_demo sourcetype=\"ux:engage\" | stats count as cnt max(_time) as last latest(script_version) as ver by page_url] | stats values(page_name) as page_name values(service) as service values(expected_version) as exp values(owner) as owner max(cnt) as cnt max(last) as last values(ver) as ver by page_url | where isnotnull(page_name) | eventstats max(last) as ref | eval st=case(isnull(cnt),\"미수신\", ref-last>3600,\"수집 중단\", ver!=exp,\"구버전 스크립트\", true(),\"정상\"), o=case(st=\"미수신\",1, st=\"수집 중단\",2, st=\"구버전 스크립트\",3, true(),4) | sort o service page_url"
+			}
+		},
+		"ds_b1": {
+			"type": "ds.chain",
+			"name": "대상",
+			"options": {
+				"extend": "ds_chk",
+				"query": "| stats count as v"
+			}
+		},
+		"ds_b2": {
+			"type": "ds.chain",
+			"name": "정상",
+			"options": {
+				"extend": "ds_chk",
+				"query": "| where st=\"정상\" | stats count as v"
+			}
+		},
+		"ds_b3": {
+			"type": "ds.chain",
+			"name": "점검 필요",
+			"options": {
+				"extend": "ds_chk",
+				"query": "| where st!=\"정상\" | stats count as v"
+			}
+		},
+		"ds_b4": {
+			"type": "ds.chain",
+			"name": "최신 버전",
+			"options": {
+				"extend": "ds_chk",
+				"query": "| where cnt>0 | stats count as n count(eval(ver=exp)) as m | eval v=round(m/n*100,1) | fields v"
+			}
+		},
+		"ds_b5": {
+			"type": "ds.search",
+			"name": "수집 실패율",
+			"options": {
+				"query": "index=ux_ops_demo sourcetype=\"ux:collector\" | stats sum(dropped) as d sum(received) as r | eval v=round(d/r*100,2) | fields v"
+			}
+		},
+		"ds_chk_tbl": {
+			"type": "ds.chain",
+			"name": "점검 표",
+			"options": {
+				"extend": "ds_chk",
+				"query": "| eval last=if(isnull(last),\"-\",strftime(last,\"%m-%d %H:%M\")), cnt=coalesce(cnt,0), ver=coalesce(ver,\"-\") | table service page_name page_url ver last cnt owner st | rename service as \"서비스\", page_name as \"화면\", page_url as \"URL\", ver as \"스크립트 버전\", last as \"마지막 수신\", cnt as \"수신 건수\", owner as \"담당\", st as \"상태\""
+			}
+		},
+		"ds_gw": {
+			"type": "ds.search",
+			"name": "게이트웨이",
+			"options": {
+				"query": "index=ux_ops_demo sourcetype=\"ux:collector\" | timechart span=30m sum(received) as \"수신\" sum(dropped) as \"수집 실패\""
+			}
+		},
+		"ds_ui": {
+			"type": "ds.search",
+			"name": "동적 UI",
+			"options": {
+				"query": "index=ux_ops_demo sourcetype=\"ux:engage\" (event_type=\"ui_interaction\" OR event_type=\"virtual_pageview\") | stats count as n dc(element_id) as e dc(session_id) as s by element_type | appendcols [search index=ux_ops_demo sourcetype=\"ux:session\" | stats dc(session_id) as tot] | eventstats max(tot) as tot | where isnotnull(element_type) | eval r=round(s/tot*100,1), how=case(element_type=\"SPA 라우트\",\"History API 후킹 → 가상 페이지뷰\", element_type=\"팝업\",\"MutationObserver 노출 감지\", element_type=\"캐러셀\",\"IntersectionObserver 노출 + 슬라이드 이벤트\", true(),\"이벤트 위임 + data-track-* 속성\") | sort - n | table element_type n e r how | rename element_type as \"요소 유형\", n as \"이벤트\", e as \"추적 요소\", r as \"상호작용 세션(%)\", how as \"수집 방식\""
+			}
+		},
+		"ds_tag": {
+			"type": "ds.search",
+			"name": "태깅 규칙",
+			"options": {
+				"query": "| makeresults format=csv data=\"속성,용도,예시\ndata-track-id,요소 고유 식별자,cert-type-tab\ndata-track-type,요소 유형(tab/popup/carousel/accordion),tab\ndata-track-label,화면 표시명,증명서 종류 탭\ndata-private,수집 제외(개인정보 입력 영역),true\" | table 속성 용도 예시",
+				"queryParameters": {
+					"earliest": "-1m",
+					"latest": "now"
+				}
+			}
+		}
+	},
+	"visualizations": {
+		"viz_header": {
+			"type": "splunk.markdown",
+			"options": {
+				"markdown": "## 분석 대상 및 수집관리\n※ 데모 화면 — 가상 민원 서비스 샘플 데이터",
+				"fontColor": "#1F2933"
+			}
+		},
+		"viz_b1": {
+			"type": "splunk.singlevalue",
+			"title": "분석 대상 화면",
+			"dataSources": {
+				"primary": "ds_b1"
+			},
+			"options": {
+				"majorFontSize": 36,
+				"unit": "개",
+				"unitPosition": "after"
+			}
+		},
+		"viz_b2": {
+			"type": "splunk.singlevalue",
+			"title": "정상 수집",
+			"dataSources": {
+				"primary": "ds_b2"
+			},
+			"options": {
+				"majorFontSize": 36,
+				"unit": "개",
+				"unitPosition": "after",
+				"majorColor": "#2E8540"
+			}
+		},
+		"viz_b3": {
+			"type": "splunk.singlevalue",
+			"title": "점검 필요",
+			"dataSources": {
+				"primary": "ds_b3"
+			},
+			"options": {
+				"majorFontSize": 36,
+				"unit": "개",
+				"unitPosition": "after",
+				"majorColor": "#D6333A"
+			}
+		},
+		"viz_b4": {
+			"type": "splunk.singlevalue",
+			"title": "최신 스크립트 적용률",
+			"dataSources": {
+				"primary": "ds_b4"
+			},
+			"options": {
+				"majorFontSize": 36,
+				"unit": "%",
+				"unitPosition": "after"
+			}
+		},
+		"viz_b5": {
+			"type": "splunk.singlevalue",
+			"title": "수집 실패율",
+			"dataSources": {
+				"primary": "ds_b5"
+			},
+			"options": {
+				"majorFontSize": 36,
+				"unit": "%",
+				"unitPosition": "after"
+			}
+		},
+		"viz_chk": {
+			"type": "splunk.table",
+			"title": "① 분석 대상 화면별 정상 수집 점검",
+			"description": "분석 대상 화면 목록(lookup) 대비 실제 수신 현황 · 미수신/수집 중단/구버전 자동 판별",
+			"dataSources": {
+				"primary": "ds_chk_tbl"
+			},
+			"options": {
+				"count": 12,
+				"columnFormat": {
+					"상태": {
+						"rowBackgroundColors": "> table | seriesByName(\"상태\") | matchValue(stColors)"
+					}
+				}
+			},
+			"context": {
+				"stColors": [
+					{
+						"match": "미수신",
+						"value": "#F7B5B5"
+					},
+					{
+						"match": "수집 중단",
+						"value": "#F7B5B5"
+					},
+					{
+						"match": "구버전 스크립트",
+						"value": "#FBD9A8"
+					},
+					{
+						"match": "정상",
+						"value": "#D5ECC2"
+					}
+				]
+			}
+		},
+		"viz_gw": {
+			"type": "splunk.column",
+			"title": "①-2 수집 게이트웨이 수신·실패 추이",
+			"description": "11:30~11:50 gw2 인증 토큰 오류로 수집 실패 증가",
+			"dataSources": {
+				"primary": "ds_gw"
+			},
+			"options": {
+				"overlayFields": [
+					"수집 실패"
+				],
+				"showOverlayY2Axis": true,
+				"seriesColorsByField": {
+					"수신": "#5A8DEE",
+					"수집 실패": "#E24B4A"
+				},
+				"legendDisplay": "top",
+				"xAxisTitleVisibility": "hide",
+				"yAxisTitleText": "수신",
+				"y2AxisTitleText": "수집 실패"
+			}
+		},
+		"viz_ui": {
+			"type": "splunk.table",
+			"title": "② 동적 UI 요소 분석 (메뉴·탭·팝업·캐러셀·SPA)",
+			"dataSources": {
+				"primary": "ds_ui"
+			},
+			"options": {}
+		}
+	},
+	"applicationProperties": {
+		"hideEdit": false,
+		"hideExport": false,
+		"hideOpenInSearch": false
+	},
+	"layout": {
+		"tabs": {
+			"items": [
+				{
+					"layoutId": "layout_1",
+					"label": "새 탭"
+				}
+			]
+		},
+		"layoutDefinitions": {
+			"layout_1": {
+				"type": "absolute",
+				"options": {
+					"width": 1440,
+					"height": 830,
+					"display": "auto-scale",
+					"backgroundColor": "#F5F6F8"
+				},
+				"structure": [
+					{
+						"item": "viz_header",
+						"type": "block",
+						"position": {
+							"x": 0,
+							"y": 0,
+							"w": 1440,
+							"h": 60
+						}
+					},
+					{
+						"item": "viz_b1",
+						"type": "block",
+						"position": {
+							"x": 0,
+							"y": 60,
+							"w": 280,
+							"h": 100
+						}
+					},
+					{
+						"item": "viz_b2",
+						"type": "block",
+						"position": {
+							"x": 290,
+							"y": 60,
+							"w": 280,
+							"h": 100
+						}
+					},
+					{
+						"item": "viz_b3",
+						"type": "block",
+						"position": {
+							"x": 580,
+							"y": 60,
+							"w": 280,
+							"h": 100
+						}
+					},
+					{
+						"item": "viz_b4",
+						"type": "block",
+						"position": {
+							"x": 870,
+							"y": 60,
+							"w": 280,
+							"h": 100
+						}
+					},
+					{
+						"item": "viz_b5",
+						"type": "block",
+						"position": {
+							"x": 1160,
+							"y": 60,
+							"w": 280,
+							"h": 100
+						}
+					},
+					{
+						"item": "viz_chk",
+						"type": "block",
+						"position": {
+							"x": 0,
+							"y": 170,
+							"w": 760,
+							"h": 650
+						}
+					},
+					{
+						"item": "viz_gw",
+						"type": "block",
+						"position": {
+							"x": 770,
+							"y": 170,
+							"w": 670,
+							"h": 240
+						}
+					},
+					{
+						"item": "viz_ui",
+						"type": "block",
+						"position": {
+							"x": 770,
+							"y": 420,
+							"w": 670,
+							"h": 400
+						}
+					}
+				]
+			}
+		},
+		"globalInputs": [
+			"input_time"
+		]
+	}
+}
+    ]]></definition>
+</dashboard>

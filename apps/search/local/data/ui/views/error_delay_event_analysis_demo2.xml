@@ -1,10 +1,10 @@
 
 <dashboard version="2" theme="light">
-    <label>오류·지연 연계 사용자 행동 분석 (데모)</label>
+    <label>다) 오류·지연 연계 사용자 행동 분석 (데모)</label>
     <description>데모 화면 - 샘플 데이터</description>
     <definition><![CDATA[
 {
-	"title": "오류·지연 연계 사용자 행동 분석 (데모)",
+	"title": "다) 오류·지연 연계 사용자 행동 분석 (데모)",
 	"description": "데모 화면 - 샘플 데이터",
 	"inputs": {
 		"input_time": {

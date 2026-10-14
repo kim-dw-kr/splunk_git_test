@@ -107,7 +107,7 @@
 		"viz_header": {
 			"type": "splunk.markdown",
 			"options": {
-				"markdown": "## 오류·지연 연계 사용자 행동 분석\n※ 데모 화면 — 가상 민원 서비스 샘플 데이터",
+				"markdown": "## 오류·지연 연계 사용자 행동 분석\n※ 데모 화면 — 가상 서비스 샘플 데이터",
 				"fontColor": "#1F2933"
 			}
 		},
@@ -176,7 +176,7 @@
 		"viz_trend": {
 			"type": "splunk.column",
 			"title": "① 오류·지연 발생과 세션 이탈률 (30분 단위)",
-			"description": "14시대 서류첨부 API 응답 지연 급증 → 이탈률 동반 상승",
+			"description": "OOO API 응답 지연 급증 → 이탈률 동반 상승",
 			"dataSources": {
 				"primary": "ds_trend"
 			},

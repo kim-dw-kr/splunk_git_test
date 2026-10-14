@@ -24,4 +24,60 @@
       </default>
     </input>
   </fieldset>
+  <row>
+    <panel>
+      <table>
+        <title>화면 오류</title>
+        <search>
+          <query>| makeresults count=1
+| eval test=""</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>스크립트 오류</title>
+        <search>
+          <query>| makeresults count=1
+| eval test=""</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>응답 지연</title>
+        <search>
+          <query>| makeresults count=1
+| eval test=""</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>업무 실패</title>
+        <search>
+          <query>| makeresults count=1
+| eval test=""</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
 </form>

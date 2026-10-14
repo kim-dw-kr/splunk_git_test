@@ -1,51 +1,378 @@
 
-<dashboard version="2" theme="dark">
-    <label>통합연계조회</label>
-    <description></description>
+<dashboard version="2" theme="light">
+    <label>기존 Splunk 로그 통합 연계 조회 (데모)</label>
+    <description>데모 화면 - 샘플 데이터</description>
     <definition><![CDATA[
 {
-	"visualizations": {},
-	"dataSources": {},
+	"title": "기존 Splunk 로그 통합 연계 조회 (데모)",
+	"description": "데모 화면 - 샘플 데이터",
+	"inputs": {
+		"input_time": {
+			"type": "input.timerange",
+			"title": "기간",
+			"options": {
+				"token": "global_time",
+				"defaultValue": "-1d@d,@d"
+			}
+		},
+		"input_svc": {
+			"type": "input.dropdown",
+			"title": "서비스명",
+			"options": {
+				"items": [
+					{
+						"label": "전체",
+						"value": "*"
+					},
+					{
+						"label": "민원신청",
+						"value": "민원신청"
+					},
+					{
+						"label": "증명서발급",
+						"value": "증명서발급"
+					}
+				],
+				"token": "f_svc",
+				"defaultValue": "*"
+			}
+		},
+		"input_url": {
+			"type": "input.text",
+			"title": "URL (* 와일드카드)",
+			"options": {
+				"token": "f_url",
+				"defaultValue": "*"
+			}
+		},
+		"input_sid": {
+			"type": "input.text",
+			"title": "세션ID",
+			"options": {
+				"token": "f_sid",
+				"defaultValue": "*"
+			}
+		},
+		"input_tx": {
+			"type": "input.text",
+			"title": "거래ID",
+			"options": {
+				"token": "f_tx",
+				"defaultValue": "TX-SHOWCASE-007781"
+			}
+		}
+	},
 	"defaults": {
 		"dataSources": {
 			"ds.search": {
 				"options": {
 					"queryParameters": {
-						"latest": "$global_time.latest$",
-						"earliest": "$global_time.earliest$"
-					}
-				}
-			},
-			"ds.spl2": {
-				"options": {
-					"queryParameters": {
-						"latest": "$global_time.latest$",
-						"earliest": "$global_time.earliest$"
+						"earliest": "$global_time.earliest$",
+						"latest": "$global_time.latest$"
 					}
 				}
 			}
 		},
-		"visualizations": {
-			"global": {
-				"showProgressBar": true
+		"tokens": {
+			"default": {
+				"sel_session": {
+					"value": "s-7c1e94a2"
+				},
+				"sel_tx": {
+					"value": "TX-SHOWCASE-007781"
+				}
 			}
 		}
 	},
-	"inputs": {
-		"input_global_trp": {
-			"type": "input.timerange",
+	"dataSources": {
+		"ds_keymap": {
+			"type": "ds.search",
+			"name": "연계키 매핑",
 			"options": {
-				"token": "global_time",
-				"defaultValue": "-24h@h,now"
+				"query": "| makeresults format=csv data=\"표준 키,사용자 행동(신규),웹 접근로그,WAS 로그,AP 업무로그\nsession_id,session_id,sid,session_id,(없음 → 거래ID로 연계)\ntx_id,tx_id,txid,tx_id,TRX_ID\nservice,service,URI 규칙 매핑,service,SVC\nurl,page_url,uri,uri,-\" | table \"표준 키\" \"사용자 행동(신규)\" \"웹 접근로그\" \"WAS 로그\" \"AP 업무로그\"",
+				"queryParameters": {
+					"earliest": "-1m",
+					"latest": "now"
+				}
+			}
+		},
+		"ds_sessions": {
+			"type": "ds.search",
+			"name": "조건 일치 세션",
+			"options": {
+				"query": "index=ux_demo sourcetype!=\"ap:biz\" | eval m=if(like(coalesce(service,\"\"), replace(\"$f_svc$\",\"[*]\",\"%\")) AND like(coalesce(url,\"\"), replace(\"$f_url$\",\"[*]\",\"%\")) AND like(coalesce(session_id,\"\"), replace(\"$f_sid$\",\"[*]\",\"%\")) AND like(coalesce(tx_id,\"\"), replace(\"$f_tx$\",\"[*]\",\"%\")),1,0) | stats max(m) as m values(eval(if(sourcetype=\"ux:event\",service,null()))) as svc min(_time) as t count(eval(sourcetype=\"ux:event\")) as ux count(eval(sourcetype=\"web:access\")) as web count(eval(sourcetype=\"was:access\")) as was dc(tx_id) as txc sum(eval(if(evt=\"api_error\" OR evt=\"slow_response\" OR evt=\"js_error\",1,0))) as err max(eval(if(evt=\"apply_complete\",1,0))) as conv by session_id | where m=1 | sort t | head 500 | eval t=strftime(t,\"%m-%d %H:%M:%S\"), conv=if(conv=1,\"전환 완료\",\"전환 실패(이탈)\") | table session_id svc t ux web was txc err conv | rename session_id as \"세션ID\", svc as \"서비스\", t as \"시작\", ux as \"행동\", web as \"웹 요청\", was as \"WAS 거래\", txc as \"거래ID 수\", err as \"오류·지연\", conv as \"결과\""
+			}
+		},
+		"ds_session_tl": {
+			"type": "ds.search",
+			"name": "세션 통합 타임라인",
+			"options": {
+				"query": "index=ux_demo (session_id=\"$sel_session$\" OR [search index=ux_demo session_id=\"$sel_session$\" tx_id=* | stats count by tx_id | fields tx_id]) | eval \"출처\"=case(sourcetype=\"ux:event\",\"사용자 행동(신규)\", sourcetype=\"web:access\",\"웹 접근로그\", sourcetype=\"was:access\",\"WAS 로그\", sourcetype=\"ap:biz\",\"AP 업무로그\") | eval \"내용\"=case(sourcetype=\"ux:event\", case(evt=\"page_view\",\"화면 진입: \".page_name, evt=\"click\",\"클릭: \".element_label, evt=\"rage_click\",\"반복 클릭 \".click_count.\"회: \".element_label, evt=\"js_error\",\"스크립트 오류: \".error_msg, evt=\"page_exit\",\"화면 이탈: \".page_name, evt=\"apply_complete\",\"신청 완료\", true(),evt), sourcetype=\"web:access\", method.\" \".url.\" → HTTP \".status.\" (\".rt_ms.\"ms)\", sourcetype=\"was:access\", \"WAS 처리 \".resp_ms.\"ms · HTTP \".status, sourcetype=\"ap:biz\", log_level.\" [\".logger.\"] \".STEP.\" \".coalesce(CODE.\" \",\"\").MSG) | eval \"상태\"=case(evt=\"js_error\" OR evt=\"api_error\" OR (sourcetype=\"web:access\" AND status>=500) OR log_level=\"ERROR\",\"오류\", evt=\"slow_response\" OR (sourcetype=\"web:access\" AND rt_ms>=3000) OR log_level=\"WARN\",\"지연\", evt=\"rage_click\",\"불편 징후\", evt=\"page_exit\",\"이탈\", evt=\"apply_complete\",\"전환\", true(),\"정상\") | eval \"시각\"=strftime(_time,\"%H:%M:%S.%3N\") | sort _time | table \"시각\" \"출처\" service url tx_id \"상태\" \"내용\" | rename service as \"서비스\", url as \"URL\", tx_id as \"거래ID\""
+			}
+		},
+		"ds_tx": {
+			"type": "ds.search",
+			"name": "거래 추적",
+			"options": {
+				"query": "index=ux_demo tx_id=\"$sel_tx$\" | eventstats min(_time) as t0 | eval el=round((_time-t0)*1000) | eval \"출처\"=case(sourcetype=\"ux:event\",\"사용자 행동(신규)\", sourcetype=\"web:access\",\"웹 접근로그\", sourcetype=\"was:access\",\"WAS 로그\", sourcetype=\"ap:biz\",\"AP 업무로그\") | eval \"내용\"=case(sourcetype=\"ux:event\", case(evt=\"page_view\",\"화면 진입: \".page_name, evt=\"click\",\"클릭: \".element_label, evt=\"rage_click\",\"반복 클릭 \".click_count.\"회: \".element_label, evt=\"js_error\",\"스크립트 오류: \".error_msg, evt=\"page_exit\",\"화면 이탈: \".page_name, evt=\"apply_complete\",\"신청 완료\", true(),evt), sourcetype=\"web:access\", method.\" \".url.\" → HTTP \".status.\" (\".rt_ms.\"ms)\", sourcetype=\"was:access\", \"WAS 처리 \".resp_ms.\"ms · HTTP \".status, sourcetype=\"ap:biz\", log_level.\" [\".logger.\"] \".STEP.\" \".coalesce(CODE.\" \",\"\").MSG) | eval \"상태\"=case(evt=\"js_error\" OR evt=\"api_error\" OR (sourcetype=\"web:access\" AND status>=500) OR log_level=\"ERROR\",\"오류\", evt=\"slow_response\" OR (sourcetype=\"web:access\" AND rt_ms>=3000) OR log_level=\"WARN\",\"지연\", evt=\"rage_click\",\"불편 징후\", evt=\"page_exit\",\"이탈\", evt=\"apply_complete\",\"전환\", true(),\"정상\") | eval \"시각\"=strftime(_time,\"%H:%M:%S.%3N\") | sort _time | table \"시각\" el \"출처\" session_id url \"상태\" \"내용\" | rename el as \"경과(ms)\", session_id as \"세션ID\", url as \"URL\""
+			}
+		}
+	},
+	"visualizations": {
+		"viz_header": {
+			"type": "splunk.markdown",
+			"options": {
+				"markdown": "## 기존 Splunk 로그 통합 연계 조회\n※ 데모 화면 — 가상 민원 서비스 샘플 데이터 · 시간, 서비스명, URL, 세션ID, 거래ID 기준 조회",
+				"fontColor": "#1F2933"
+			}
+		},
+		"viz_keymap": {
+			"type": "splunk.table",
+			"title": "① 연계 키 표준화",
+			"description": "소스별 상이한 필드명을 공통 키로 매핑 (FIELDALIAS / 계산 필드)",
+			"dataSources": {
+				"primary": "ds_keymap"
 			},
-			"title": "세계 시간 범위"
+			"options": {}
+		},
+		"viz_sessions": {
+			"type": "splunk.table",
+			"title": "② 조건 일치 세션",
+			"description": "상단 조회 조건(서비스명·URL·세션ID·거래ID) 적용 · 행 클릭 시 ③ 갱신",
+			"dataSources": {
+				"primary": "ds_sessions"
+			},
+			"options": {
+				"count": 5,
+				"columnFormat": {
+					"결과": {
+						"rowBackgroundColors": "> table | seriesByName(\"결과\") | matchValue(resColors)"
+					}
+				}
+			},
+			"context": {
+				"srcColors": [
+					{
+						"match": "사용자 행동(신규)",
+						"value": "#DCEBFB"
+					},
+					{
+						"match": "웹 접근로그",
+						"value": "#E3F2EC"
+					},
+					{
+						"match": "WAS 로그",
+						"value": "#E6E1FA"
+					},
+					{
+						"match": "AP 업무로그",
+						"value": "#FBEBD5"
+					}
+				],
+				"stateColors": [
+					{
+						"match": "오류",
+						"value": "#F7B5B5"
+					},
+					{
+						"match": "지연",
+						"value": "#FBD9A8"
+					},
+					{
+						"match": "불편 징후",
+						"value": "#FBD9A8"
+					},
+					{
+						"match": "이탈",
+						"value": "#F7C1C1"
+					},
+					{
+						"match": "전환",
+						"value": "#D5ECC2"
+					}
+				],
+				"resColors": [
+					{
+						"match": "전환 실패(이탈)",
+						"value": "#F7C1C1"
+					},
+					{
+						"match": "전환 완료",
+						"value": "#D5ECC2"
+					}
+				]
+			},
+			"eventHandlers": [
+				{
+					"type": "drilldown.setToken",
+					"options": {
+						"tokens": [
+							{
+								"token": "sel_session",
+								"key": "row.세션ID.value"
+							}
+						]
+					}
+				}
+			]
+		},
+		"viz_session_tl": {
+			"type": "splunk.table",
+			"title": "③ 세션 통합 타임라인 · $sel_session$",
+			"description": "사용자 행동 + 웹 접근로그 + WAS 로그 + AP 업무로그(거래ID로 연계) · 행 클릭 시 ④ 거래 추적",
+			"dataSources": {
+				"primary": "ds_session_tl"
+			},
+			"options": {
+				"count": 25,
+				"columnFormat": {
+					"출처": {
+						"rowBackgroundColors": "> table | seriesByName(\"출처\") | matchValue(srcColors)"
+					},
+					"상태": {
+						"rowBackgroundColors": "> table | seriesByName(\"상태\") | matchValue(stateColors)"
+					}
+				}
+			},
+			"context": {
+				"srcColors": [
+					{
+						"match": "사용자 행동(신규)",
+						"value": "#DCEBFB"
+					},
+					{
+						"match": "웹 접근로그",
+						"value": "#E3F2EC"
+					},
+					{
+						"match": "WAS 로그",
+						"value": "#E6E1FA"
+					},
+					{
+						"match": "AP 업무로그",
+						"value": "#FBEBD5"
+					}
+				],
+				"stateColors": [
+					{
+						"match": "오류",
+						"value": "#F7B5B5"
+					},
+					{
+						"match": "지연",
+						"value": "#FBD9A8"
+					},
+					{
+						"match": "불편 징후",
+						"value": "#FBD9A8"
+					},
+					{
+						"match": "이탈",
+						"value": "#F7C1C1"
+					},
+					{
+						"match": "전환",
+						"value": "#D5ECC2"
+					}
+				],
+				"resColors": [
+					{
+						"match": "전환 실패(이탈)",
+						"value": "#F7C1C1"
+					},
+					{
+						"match": "전환 완료",
+						"value": "#D5ECC2"
+					}
+				]
+			},
+			"eventHandlers": [
+				{
+					"type": "drilldown.setToken",
+					"options": {
+						"tokens": [
+							{
+								"token": "sel_tx",
+								"key": "row.거래ID.value"
+							}
+						]
+					}
+				}
+			]
+		},
+		"viz_tx": {
+			"type": "splunk.table",
+			"title": "④ 거래 추적 · $sel_tx$",
+			"description": "단일 거래ID의 화면 → 웹 → WAS → AP 처리 구간별 경과 시간",
+			"dataSources": {
+				"primary": "ds_tx"
+			},
+			"options": {
+				"count": 10,
+				"columnFormat": {
+					"출처": {
+						"rowBackgroundColors": "> table | seriesByName(\"출처\") | matchValue(srcColors)"
+					},
+					"상태": {
+						"rowBackgroundColors": "> table | seriesByName(\"상태\") | matchValue(stateColors)"
+					}
+				}
+			},
+			"context": {
+				"srcColors": [
+					{
+						"match": "사용자 행동(신규)",
+						"value": "#DCEBFB"
+					},
+					{
+						"match": "웹 접근로그",
+						"value": "#E3F2EC"
+					},
+					{
+						"match": "WAS 로그",
+						"value": "#E6E1FA"
+					},
+					{
+						"match": "AP 업무로그",
+						"value": "#FBEBD5"
+					}
+				],
+				"stateColors": [
+					{
+						"match": "오류",
+						"value": "#F7B5B5"
+					},
+					{
+						"match": "지연",
+						"value": "#FBD9A8"
+					},
+					{
+						"match": "불편 징후",
+						"value": "#FBD9A8"
+					},
+					{
+						"match": "이탈",
+						"value": "#F7C1C1"
+					},
+					{
+						"match": "전환",
+						"value": "#D5ECC2"
+					}
+				],
+				"resColors": [
+					{
+						"match": "전환 실패(이탈)",
+						"value": "#F7C1C1"
+					},
+					{
+						"match": "전환 완료",
+						"value": "#D5ECC2"
+					}
+				]
+			}
 		}
 	},
 	"layout": {
-		"options": {},
-		"globalInputs": [
-			"input_global_trp"
-		],
 		"tabs": {
 			"items": [
 				{
@@ -57,17 +384,74 @@
 		"layoutDefinitions": {
 			"layout_1": {
 				"type": "absolute",
-				"structure": [],
 				"options": {
 					"width": 1440,
-					"height": 960,
-					"display": "auto"
-				}
+					"height": 1440,
+					"display": "auto-scale",
+					"backgroundColor": "#F5F6F8"
+				},
+				"structure": [
+					{
+						"item": "viz_header",
+						"type": "block",
+						"position": {
+							"x": 0,
+							"y": 0,
+							"w": 1440,
+							"h": 60
+						}
+					},
+					{
+						"item": "viz_keymap",
+						"type": "block",
+						"position": {
+							"x": 0,
+							"y": 70,
+							"w": 560,
+							"h": 250
+						}
+					},
+					{
+						"item": "viz_sessions",
+						"type": "block",
+						"position": {
+							"x": 570,
+							"y": 70,
+							"w": 870,
+							"h": 250
+						}
+					},
+					{
+						"item": "viz_session_tl",
+						"type": "block",
+						"position": {
+							"x": 0,
+							"y": 330,
+							"w": 1440,
+							"h": 790
+						}
+					},
+					{
+						"item": "viz_tx",
+						"type": "block",
+						"position": {
+							"x": 0,
+							"y": 1130,
+							"w": 1440,
+							"h": 300
+						}
+					}
+				]
 			}
-		}
-	},
-	"description": "",
-	"title": "통합연계조회"
+		},
+		"globalInputs": [
+			"input_time",
+			"input_svc",
+			"input_url",
+			"input_sid",
+			"input_tx"
+		]
+	}
 }
     ]]></definition>
 </dashboard>

@@ -1,3 +1,27 @@
-<dashboard version="1.1" theme="dark">
+<form version="1.1" theme="dark">
   <label>오류·지연·이벤트 연계 분석 화면 (Demo)</label>
-</dashboard>
+  <fieldset submitButton="false">
+    <input type="text" token="t_user" searchWhenChanged="true">
+      <label>사용자ID</label>
+      <default>*</default>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="text" token="t_session" searchWhenChanged="true">
+      <label>세션ID</label>
+      <default>*</default>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="text" token="t_transaction" searchWhenChanged="true">
+      <label>거래ID</label>
+      <default>*</default>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="time" token="t_time" searchWhenChanged="true">
+      <label>시간</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+</form>

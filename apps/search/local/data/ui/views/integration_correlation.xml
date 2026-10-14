@@ -88,7 +88,7 @@
 		"viz_header": {
 			"options": {
 				"fontColor": "#1F2933",
-				"markdown": "## 기존 Splunk 로그 통합 연계 조회\n※ 데모 화면 — 가상 민원 서비스 샘플 데이터 · 시간, 서비스명, URL, 세션ID, 거래ID 기준 조회"
+				"markdown": "## 기존 Splunk 로그 통합 연계 조회\n※ 데모 화면 — 가상 서비스 샘플 데이터 · 시간, 서비스명, URL, 세션ID, 거래ID 기준 조회"
 			},
 			"type": "splunk.markdown"
 		},

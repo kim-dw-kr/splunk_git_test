@@ -1,0 +1,73 @@
+
+<dashboard version="2" theme="dark">
+    <label>통합연계조회</label>
+    <description></description>
+    <definition><![CDATA[
+{
+	"visualizations": {},
+	"dataSources": {},
+	"defaults": {
+		"dataSources": {
+			"ds.search": {
+				"options": {
+					"queryParameters": {
+						"latest": "$global_time.latest$",
+						"earliest": "$global_time.earliest$"
+					}
+				}
+			},
+			"ds.spl2": {
+				"options": {
+					"queryParameters": {
+						"latest": "$global_time.latest$",
+						"earliest": "$global_time.earliest$"
+					}
+				}
+			}
+		},
+		"visualizations": {
+			"global": {
+				"showProgressBar": true
+			}
+		}
+	},
+	"inputs": {
+		"input_global_trp": {
+			"type": "input.timerange",
+			"options": {
+				"token": "global_time",
+				"defaultValue": "-24h@h,now"
+			},
+			"title": "세계 시간 범위"
+		}
+	},
+	"layout": {
+		"options": {},
+		"globalInputs": [
+			"input_global_trp"
+		],
+		"tabs": {
+			"items": [
+				{
+					"layoutId": "layout_1",
+					"label": "새 탭"
+				}
+			]
+		},
+		"layoutDefinitions": {
+			"layout_1": {
+				"type": "absolute",
+				"structure": [],
+				"options": {
+					"width": 1440,
+					"height": 960,
+					"display": "auto"
+				}
+			}
+		}
+	},
+	"description": "",
+	"title": "통합연계조회"
+}
+    ]]></definition>
+</dashboard>

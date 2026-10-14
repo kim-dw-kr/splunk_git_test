@@ -1,0 +1,280 @@
+
+<dashboard version="2" theme="dark">
+    <label>오류·지연·이벤트 연계 분석 화면 (Demo)</label>
+    <description></description>
+    <definition><![CDATA[
+{
+	"visualizations": {
+		"viz_VUB0sEY6": {
+			"type": "splunk.table",
+			"options": {
+				"drilldown": "none",
+				"showInternalFields": false
+			},
+			"dataSources": {
+				"primary": "ds_1kv4eLcH"
+			},
+			"title": "화면 오류"
+		},
+		"viz_4GpLxy3f": {
+			"type": "splunk.table",
+			"options": {
+				"drilldown": "none",
+				"showInternalFields": false
+			},
+			"dataSources": {
+				"primary": "ds_9gpkdEpB"
+			},
+			"title": "스크립트 오류"
+		},
+		"viz_MPRNIC2f": {
+			"type": "splunk.table",
+			"options": {
+				"drilldown": "none",
+				"showInternalFields": false
+			},
+			"dataSources": {
+				"primary": "ds_YcbITwUm"
+			},
+			"title": "응답 지연"
+		},
+		"viz_JR9eccC4": {
+			"type": "splunk.table",
+			"options": {
+				"drilldown": "none",
+				"showInternalFields": false
+			},
+			"dataSources": {
+				"primary": "ds_E0F6oeme"
+			},
+			"title": "업무 실패"
+		}
+	},
+	"dataSources": {
+		"ds_1kv4eLcH": {
+			"type": "ds.search",
+			"options": {
+				"query": "| makeresults count=1\n| eval test=\"\"",
+				"queryParameters": {
+					"earliest": "-24h@h",
+					"latest": "now"
+				}
+			},
+			"name": "__ __ 1 search"
+		},
+		"ds_9gpkdEpB": {
+			"type": "ds.search",
+			"options": {
+				"query": "| makeresults count=1\n| eval test=\"\"",
+				"queryParameters": {
+					"earliest": "-24h@h",
+					"latest": "now"
+				}
+			},
+			"name": "____ __ search"
+		},
+		"ds_YcbITwUm": {
+			"type": "ds.search",
+			"options": {
+				"query": "| makeresults count=1\n| eval test=\"\"",
+				"queryParameters": {
+					"earliest": "-24h@h",
+					"latest": "now"
+				}
+			},
+			"name": "__ __ 2 search"
+		},
+		"ds_E0F6oeme": {
+			"type": "ds.search",
+			"options": {
+				"query": "| makeresults count=1\n| eval test=\"\"",
+				"queryParameters": {
+					"earliest": "-24h@h",
+					"latest": "now"
+				}
+			},
+			"name": "__ __ 3 search"
+		}
+	},
+	"defaults": {
+		"dataSources": {
+			"ds.search": {
+				"options": {
+					"queryParameters": {}
+				}
+			},
+			"ds.spl2": {
+				"options": {
+					"queryParameters": {}
+				}
+			}
+		},
+		"visualizations": {
+			"global": {
+				"showProgressBar": true
+			}
+		}
+	},
+	"inputs": {
+		"input_5l7A2TDO": {
+			"type": "input.text",
+			"options": {
+				"token": "t_user",
+				"defaultValue": "*"
+			},
+			"title": "사용자ID"
+		},
+		"input_JxMH72XD": {
+			"type": "input.text",
+			"options": {
+				"token": "t_session",
+				"defaultValue": "*"
+			},
+			"title": "세션ID"
+		},
+		"input_fj5R0p0s": {
+			"type": "input.text",
+			"options": {
+				"token": "t_transaction",
+				"defaultValue": "*"
+			},
+			"title": "거래ID"
+		},
+		"input_9qDIxfnV": {
+			"type": "input.timerange",
+			"options": {
+				"token": "t_time",
+				"defaultValue": "-24h@h,now"
+			},
+			"title": "시간"
+		}
+	},
+	"layout": {
+		"options": {
+			"submitButton": false
+		},
+		"globalInputs": [
+			"input_5l7A2TDO",
+			"input_JxMH72XD",
+			"input_fj5R0p0s",
+			"input_9qDIxfnV"
+		],
+		"tabs": {
+			"items": [
+				{
+					"layoutId": "layout_1",
+					"label": "새 탭"
+				}
+			]
+		},
+		"layoutDefinitions": {
+			"layout_1": {
+				"type": "absolute",
+				"structure": [
+					{
+						"item": "viz_VUB0sEY6",
+						"type": "block",
+						"position": {
+							"x": 0,
+							"y": 0,
+							"w": 1440,
+							"h": 250
+						}
+					},
+					{
+						"item": "viz_4GpLxy3f",
+						"type": "block",
+						"position": {
+							"x": 0,
+							"y": 250,
+							"w": 1440,
+							"h": 250
+						}
+					},
+					{
+						"item": "viz_MPRNIC2f",
+						"type": "block",
+						"position": {
+							"x": 0,
+							"y": 500,
+							"w": 1440,
+							"h": 250
+						}
+					},
+					{
+						"item": "viz_JR9eccC4",
+						"type": "block",
+						"position": {
+							"x": 0,
+							"y": 750,
+							"w": 1440,
+							"h": 250
+						}
+					}
+				],
+				"options": {
+					"width": 1440,
+					"height": 1005,
+					"display": "auto"
+				}
+			}
+		}
+	},
+	"description": "",
+	"title": "오류·지연·이벤트 연계 분석 화면 (Demo)",
+	"applicationProperties": {
+		"hideEdit": false,
+		"hideExport": false
+	}
+}
+    ]]></definition>
+    <meta type="conversionReport"><![CDATA[
+{
+	"conversionErrors": [],
+	"conversionWarnings": [],
+	"counts": {
+		"visualizations": {
+			"count": 4,
+			"convertedCount": 4,
+			"configCount": 8,
+			"convertedConfigCount": 8
+		},
+		"inputs": {
+			"count": 4,
+			"convertedCount": 4,
+			"configCount": 19,
+			"convertedConfigCount": 19
+		},
+		"searches": {
+			"count": 4,
+			"convertedCount": 4,
+			"configCount": 12,
+			"convertedConfigCount": 12
+		},
+		"dataSources": 4,
+		"panels": {
+			"count": 4,
+			"convertedCount": 4,
+			"configCount": 0,
+			"convertedConfigCount": 0
+		},
+		"rows": {
+			"count": 4,
+			"convertedCount": 4,
+			"configCount": 0,
+			"convertedConfigCount": 0
+		},
+		"dashboardLevelConfigs": {
+			"count": 1,
+			"convertedCount": 1,
+			"configCount": 2,
+			"convertedConfigCount": 2
+		}
+	},
+	"conversionTime": 1791957694106,
+	"originDashboardTitle": "오류·지연·이벤트 연계 분석 화면 (Demo)",
+	"originDashboardId": "error_delay_event_analysis_demo",
+	"originDashboardApp": "search"
+}
+    ]]></meta>
+</dashboard>

@@ -1,164 +1,337 @@
 
 <dashboard version="2" theme="dark">
-    <label>오류·지연·이벤트 연계 분석 화면 (Demo)</label>
-    <description></description>
+    <label>오류·지연 연계 사용자 행동 분석 (데모)</label>
+    <description>데모 화면 - 샘플 데이터</description>
     <definition><![CDATA[
 {
-	"visualizations": {
-		"viz_VUB0sEY6": {
-			"type": "splunk.table",
+	"title": "오류·지연 연계 사용자 행동 분석 (데모)",
+	"description": "데모 화면 - 샘플 데이터",
+	"inputs": {
+		"input_time": {
+			"type": "input.timerange",
+			"title": "기간",
 			"options": {
-				"drilldown": "none",
-				"showInternalFields": false
-			},
-			"dataSources": {
-				"primary": "ds_1kv4eLcH"
-			},
-			"title": "화면 오류"
-		},
-		"viz_4GpLxy3f": {
-			"type": "splunk.table",
-			"options": {
-				"drilldown": "none",
-				"showInternalFields": false
-			},
-			"dataSources": {
-				"primary": "ds_9gpkdEpB"
-			},
-			"title": "스크립트 오류"
-		},
-		"viz_MPRNIC2f": {
-			"type": "splunk.table",
-			"options": {
-				"drilldown": "none",
-				"showInternalFields": false
-			},
-			"dataSources": {
-				"primary": "ds_YcbITwUm"
-			},
-			"title": "응답 지연"
-		},
-		"viz_JR9eccC4": {
-			"type": "splunk.table",
-			"options": {
-				"drilldown": "none",
-				"showInternalFields": false
-			},
-			"dataSources": {
-				"primary": "ds_E0F6oeme"
-			},
-			"title": "업무 실패"
-		}
-	},
-	"dataSources": {
-		"ds_1kv4eLcH": {
-			"type": "ds.search",
-			"options": {
-				"query": "| makeresults count=1\n| eval test=\"\"",
-				"queryParameters": {
-					"earliest": "-24h@h",
-					"latest": "now"
-				}
-			},
-			"name": "__ __ 1 search"
-		},
-		"ds_9gpkdEpB": {
-			"type": "ds.search",
-			"options": {
-				"query": "| makeresults count=1\n| eval test=\"\"",
-				"queryParameters": {
-					"earliest": "-24h@h",
-					"latest": "now"
-				}
-			},
-			"name": "____ __ search"
-		},
-		"ds_YcbITwUm": {
-			"type": "ds.search",
-			"options": {
-				"query": "| makeresults count=1\n| eval test=\"\"",
-				"queryParameters": {
-					"earliest": "-24h@h",
-					"latest": "now"
-				}
-			},
-			"name": "__ __ 2 search"
-		},
-		"ds_E0F6oeme": {
-			"type": "ds.search",
-			"options": {
-				"query": "| makeresults count=1\n| eval test=\"\"",
-				"queryParameters": {
-					"earliest": "-24h@h",
-					"latest": "now"
-				}
-			},
-			"name": "__ __ 3 search"
+				"token": "global_time",
+				"defaultValue": "-1d@d,@d"
+			}
 		}
 	},
 	"defaults": {
 		"dataSources": {
 			"ds.search": {
 				"options": {
-					"queryParameters": {}
-				}
-			},
-			"ds.spl2": {
-				"options": {
-					"queryParameters": {}
+					"queryParameters": {
+						"earliest": "$global_time.earliest$",
+						"latest": "$global_time.latest$"
+					}
 				}
 			}
 		},
-		"visualizations": {
-			"global": {
-				"showProgressBar": true
+		"tokens": {
+			"default": {
+				"sel_page": {
+					"value": "서류첨부"
+				},
+				"sel_session": {
+					"value": "s-7c1e94a2"
+				}
 			}
 		}
 	},
-	"inputs": {
-		"input_5l7A2TDO": {
-			"type": "input.text",
+	"dataSources": {
+		"ds_kpi_err": {
+			"type": "ds.search",
+			"name": "KPI 오류지연",
 			"options": {
-				"token": "t_user",
-				"defaultValue": "*"
-			},
-			"title": "사용자ID"
+				"query": "index=ux_demo (sourcetype=\"ux:event\" OR sourcetype=\"was:access\") | eval err=if(evt=\"api_error\" OR evt=\"slow_response\" OR evt=\"js_error\",1,0) | stats sum(err) as v"
+			}
 		},
-		"input_JxMH72XD": {
-			"type": "input.text",
+		"ds_kpi_users": {
+			"type": "ds.search",
+			"name": "KPI 영향사용자",
 			"options": {
-				"token": "t_session",
-				"defaultValue": "*"
-			},
-			"title": "세션ID"
+				"query": "index=ux_demo (sourcetype=\"ux:event\" OR sourcetype=\"was:access\") | eval err=if(evt=\"api_error\" OR evt=\"slow_response\" OR evt=\"js_error\",1,0) | eventstats max(err) as e by session_id | where e=1 | stats dc(user_hash) as v"
+			}
 		},
-		"input_fj5R0p0s": {
-			"type": "input.text",
+		"ds_kpi_conv_err": {
+			"type": "ds.search",
+			"name": "KPI 전환율 오류",
 			"options": {
-				"token": "t_transaction",
-				"defaultValue": "*"
-			},
-			"title": "거래ID"
+				"query": "index=ux_demo (sourcetype=\"ux:event\" OR sourcetype=\"was:access\") | eval err=if(evt=\"api_error\" OR evt=\"slow_response\" OR evt=\"js_error\",1,0) | stats max(err) as e max(eval(if(evt=\"apply_complete\",1,0))) as c by session_id | where e=1 | stats avg(c) as v | eval v=round(v*100,1)"
+			}
 		},
-		"input_9qDIxfnV": {
-			"type": "input.timerange",
+		"ds_kpi_conv_ok": {
+			"type": "ds.search",
+			"name": "KPI 전환율 정상",
 			"options": {
-				"token": "t_time",
-				"defaultValue": "-24h@h,now"
+				"query": "index=ux_demo (sourcetype=\"ux:event\" OR sourcetype=\"was:access\") | eval err=if(evt=\"api_error\" OR evt=\"slow_response\" OR evt=\"js_error\",1,0) | stats max(err) as e max(eval(if(evt=\"apply_complete\",1,0))) as c by session_id | where e=0 | stats avg(c) as v | eval v=round(v*100,1)"
+			}
+		},
+		"ds_kpi_rage": {
+			"type": "ds.search",
+			"name": "KPI 반복클릭",
+			"options": {
+				"query": "index=ux_demo (sourcetype=\"ux:event\" OR sourcetype=\"was:access\") evt=rage_click | stats dc(session_id) as v"
+			}
+		},
+		"ds_trend": {
+			"type": "ds.search",
+			"name": "추이",
+			"options": {
+				"query": "index=ux_demo (sourcetype=\"ux:event\" OR sourcetype=\"was:access\") | eval err=if(evt=\"api_error\" OR evt=\"slow_response\" OR evt=\"js_error\",1,0) | stats min(_time) as st sum(err) as errs max(eval(if(evt=\"apply_complete\",1,0))) as conv by session_id | eval _time=st | bin _time span=30m | stats sum(errs) as e count as n sum(conv) as c by _time | eval x=round((1-c/n)*100,1) | table _time e x | rename e as \"오류·지연 건수\", x as \"이탈률(%)\""
+			}
+		},
+		"ds_impact": {
+			"type": "ds.search",
+			"name": "영향도",
+			"options": {
+				"query": "index=ux_demo (sourcetype=\"ux:event\" OR sourcetype=\"was:access\") | eval err=if(evt=\"api_error\" OR evt=\"slow_response\" OR evt=\"js_error\",1,0), rage=if(evt=\"rage_click\",1,0), pv=if(evt=\"page_view\",page_name,null()) | eventstats max(eval(if(evt=\"apply_complete\",1,0))) as conv latest(pv) as last_page by session_id | search page_name IN (\"본인인증\",\"서류첨부\",\"수수료결제\") | stats max(err) as e max(rage) as r max(conv) as c max(eval(if(last_page=page_name AND conv=0,1,0))) as ex by session_id page_name | stats sum(e) as es sum(eval(if(e=1,r,0))) as rs sum(eval(if(e=1,ex,0))) as ex_e sum(eval(if(e=0,ex,0))) as ex_o count as n sum(eval(if(e=1 AND c=0,1,0))) as f by page_name | eval xe=round(ex_e/es*100,1), xo=round(ex_o/(n-es)*100,1), d=round(xe-xo,1), d=\"+\".d, fr=round(f/es*100,1) | sort - es | table page_name es rs xe d fr | rename page_name as \"화면\", es as \"오류·지연 세션\", rs as \"반복 클릭 세션\", xe as \"이탈률(%)\", d as \"정상 대비(%p)\", fr as \"전환 실패율(%)\""
+			}
+		},
+		"ds_sessions": {
+			"type": "ds.search",
+			"name": "세션목록",
+			"options": {
+				"query": "index=ux_demo (sourcetype=\"ux:event\" OR sourcetype=\"was:access\") | eval err=if((evt=\"api_error\" OR evt=\"slow_response\" OR evt=\"js_error\") AND page_name=\"$sel_page$\",1,0) | stats sum(err) as errs sum(eval(if(evt=\"rage_click\",click_count,0))) as rc max(eval(if(evt=\"apply_complete\",1,0))) as conv min(_time) as t by session_id | where errs>0 | sort t | eval \"시작\"=strftime(t,\"%H:%M:%S\"), \"결과\"=if(conv=1,\"전환 완료\",\"전환 실패(이탈)\") | table \"시작\" session_id errs rc \"결과\" | rename errs as \"오류·지연\", rc as \"반복 클릭\""
+			}
+		},
+		"ds_timeline": {
+			"type": "ds.search",
+			"name": "타임라인",
+			"options": {
+				"query": "index=ux_demo (sourcetype=\"ux:event\" OR sourcetype=\"was:access\") session_id=\"$sel_session$\" | eval \"출처\"=if(sourcetype=\"was:access\",\"WAS 로그(기존)\",\"사용자 행동\"), \"유형\"=case(evt=\"api_error\" OR evt=\"slow_response\" OR evt=\"js_error\",\"오류·지연\", evt=\"rage_click\",\"불편 징후\", evt=\"page_exit\",\"이탈\", evt=\"apply_complete\",\"전환\", true(),\"정상\"), \"이벤트\"=case(evt=\"page_view\",\"화면 진입\", evt=\"click\",\"클릭: \".element_label, evt=\"rage_click\",\"반복 클릭 \".click_count.\"회: \".element_label, evt=\"js_error\",\"스크립트 오류\", evt=\"page_exit\",\"화면 이탈\", evt=\"apply_complete\",\"신청 완료\", evt=\"api_ok\",\"API 응답 정상\", evt=\"slow_response\",\"API 응답 지연\", evt=\"api_error\",\"API 오류\"), \"상세\"=case(sourcetype=\"was:access\",uri.\" · \".resp_ms.\"ms · HTTP \".status, evt=\"js_error\",error_msg, true(),\"\"), \"시각\"=strftime(_time,\"%H:%M:%S\") | sort _time | table \"시각\" \"출처\" page_name \"유형\" \"이벤트\" \"상세\" tx_id | rename page_name as \"화면\", tx_id as \"거래ID\""
+			}
+		}
+	},
+	"visualizations": {
+		"viz_header": {
+			"type": "splunk.markdown",
+			"options": {
+				"markdown": "## 오류·지연 연계 사용자 행동 분석\n※ 데모 화면 — 가상 민원 서비스 샘플 데이터",
+				"fontColor": "#1F2933"
+			}
+		},
+		"viz_k1": {
+			"type": "splunk.singlevalue",
+			"title": "오류·지연 발생",
+			"dataSources": {
+				"primary": "ds_kpi_err"
 			},
-			"title": "시간"
+			"options": {
+				"unit": "건",
+				"unitPosition": "after",
+				"majorFontSize": 40
+			}
+		},
+		"viz_k2": {
+			"type": "splunk.singlevalue",
+			"title": "영향 사용자",
+			"dataSources": {
+				"primary": "ds_kpi_users"
+			},
+			"options": {
+				"unit": "명",
+				"unitPosition": "after",
+				"majorFontSize": 40
+			}
+		},
+		"viz_k3": {
+			"type": "splunk.singlevalue",
+			"title": "전환율 · 오류·지연 경험 세션",
+			"dataSources": {
+				"primary": "ds_kpi_conv_err"
+			},
+			"options": {
+				"unit": "%",
+				"unitPosition": "after",
+				"majorFontSize": 40,
+				"majorColor": "#D6333A"
+			}
+		},
+		"viz_k4": {
+			"type": "splunk.singlevalue",
+			"title": "전환율 · 정상 세션",
+			"dataSources": {
+				"primary": "ds_kpi_conv_ok"
+			},
+			"options": {
+				"unit": "%",
+				"unitPosition": "after",
+				"majorFontSize": 40,
+				"majorColor": "#2E8540"
+			}
+		},
+		"viz_k5": {
+			"type": "splunk.singlevalue",
+			"title": "반복 클릭 발생 세션",
+			"dataSources": {
+				"primary": "ds_kpi_rage"
+			},
+			"options": {
+				"unit": "개",
+				"unitPosition": "after",
+				"majorFontSize": 40
+			}
+		},
+		"viz_trend": {
+			"type": "splunk.column",
+			"title": "① 오류·지연 발생과 세션 이탈률 (30분 단위)",
+			"description": "14시대 서류첨부 API 응답 지연 급증 → 이탈률 동반 상승",
+			"dataSources": {
+				"primary": "ds_trend"
+			},
+			"options": {
+				"overlayFields": [
+					"이탈률(%)"
+				],
+				"showOverlayY2Axis": true,
+				"seriesColorsByField": {
+					"오류·지연 건수": "#E24B4A",
+					"이탈률(%)": "#2F6FDB"
+				},
+				"legendDisplay": "top",
+				"xAxisTitleVisibility": "hide",
+				"yAxisTitleText": "오류·지연 건수",
+				"y2AxisTitleText": "이탈률(%)"
+			}
+		},
+		"viz_impact": {
+			"type": "splunk.table",
+			"title": "② 오류·지연 발생 화면별 사용자 영향도",
+			"description": "오류·지연 경험 세션 기준 · 행 클릭 시 아래 세션 목록 갱신",
+			"dataSources": {
+				"primary": "ds_impact"
+			},
+			"options": {
+				"columnFormat": {
+					"이탈률(%)": {
+						"rowBackgroundColors": "> table | seriesByName(\"이탈률(%)\") | rangeValue(exitColors)"
+					}
+				}
+			},
+			"context": {
+				"exitColors": [
+					{
+						"to": 30,
+						"value": "#FFFFFF"
+					},
+					{
+						"from": 30,
+						"to": 60,
+						"value": "#FBD9A8"
+					},
+					{
+						"from": 60,
+						"value": "#F7B5B5"
+					}
+				]
+			},
+			"eventHandlers": [
+				{
+					"type": "drilldown.setToken",
+					"options": {
+						"tokens": [
+							{
+								"token": "sel_page",
+								"key": "row.화면.value"
+							}
+						]
+					}
+				}
+			]
+		},
+		"viz_sessions": {
+			"type": "splunk.table",
+			"title": "오류·지연 경험 세션 목록 · 화면: $sel_page$",
+			"description": "행 클릭 시 ③ 세션 타임라인 조회",
+			"dataSources": {
+				"primary": "ds_sessions"
+			},
+			"options": {
+				"count": 8,
+				"columnFormat": {
+					"결과": {
+						"rowBackgroundColors": "> table | seriesByName(\"결과\") | matchValue(resColors)"
+					}
+				}
+			},
+			"context": {
+				"resColors": [
+					{
+						"match": "전환 실패(이탈)",
+						"value": "#F7C1C1"
+					},
+					{
+						"match": "전환 완료",
+						"value": "#D5ECC2"
+					}
+				]
+			},
+			"eventHandlers": [
+				{
+					"type": "drilldown.setToken",
+					"options": {
+						"tokens": [
+							{
+								"token": "sel_session",
+								"key": "row.session_id.value"
+							}
+						]
+					}
+				}
+			]
+		},
+		"viz_timeline": {
+			"type": "splunk.table",
+			"title": "③ 세션 타임라인 · $sel_session$",
+			"description": "세션ID·거래ID 기준 사용자 행동과 WAS 로그 통합 조회",
+			"dataSources": {
+				"primary": "ds_timeline"
+			},
+			"options": {
+				"count": 20,
+				"columnFormat": {
+					"출처": {
+						"rowBackgroundColors": "> table | seriesByName(\"출처\") | matchValue(srcColors)"
+					},
+					"유형": {
+						"rowBackgroundColors": "> table | seriesByName(\"유형\") | matchValue(typeColors)"
+					}
+				}
+			},
+			"context": {
+				"srcColors": [
+					{
+						"match": "사용자 행동",
+						"value": "#DCEBFB"
+					},
+					{
+						"match": "WAS 로그(기존)",
+						"value": "#E6E1FA"
+					}
+				],
+				"typeColors": [
+					{
+						"match": "오류·지연",
+						"value": "#F7C1C1"
+					},
+					{
+						"match": "불편 징후",
+						"value": "#FBD9A8"
+					},
+					{
+						"match": "이탈",
+						"value": "#F7C1C1"
+					},
+					{
+						"match": "전환",
+						"value": "#D5ECC2"
+					}
+				]
+			}
 		}
 	},
 	"layout": {
-		"options": {
-			"submitButton": false
-		},
-		"globalInputs": [
-			"input_5l7A2TDO",
-			"input_JxMH72XD",
-			"input_fj5R0p0s",
-			"input_9qDIxfnV"
-		],
 		"tabs": {
 			"items": [
 				{
@@ -170,61 +343,119 @@
 		"layoutDefinitions": {
 			"layout_1": {
 				"type": "absolute",
+				"options": {
+					"width": 1440,
+					"height": 1020,
+					"display": "auto-scale",
+					"backgroundColor": "#F5F6F8"
+				},
 				"structure": [
 					{
-						"item": "viz_VUB0sEY6",
+						"item": "viz_header",
 						"type": "block",
 						"position": {
 							"x": 0,
 							"y": 0,
 							"w": 1440,
-							"h": 250
+							"h": 60
 						}
 					},
 					{
-						"item": "viz_4GpLxy3f",
+						"item": "viz_k1",
 						"type": "block",
 						"position": {
 							"x": 0,
-							"y": 250,
-							"w": 1440,
-							"h": 250
+							"y": 70,
+							"w": 280,
+							"h": 110
 						}
 					},
 					{
-						"item": "viz_MPRNIC2f",
+						"item": "viz_k2",
+						"type": "block",
+						"position": {
+							"x": 290,
+							"y": 70,
+							"w": 280,
+							"h": 110
+						}
+					},
+					{
+						"item": "viz_k3",
+						"type": "block",
+						"position": {
+							"x": 580,
+							"y": 70,
+							"w": 280,
+							"h": 110
+						}
+					},
+					{
+						"item": "viz_k4",
+						"type": "block",
+						"position": {
+							"x": 870,
+							"y": 70,
+							"w": 280,
+							"h": 110
+						}
+					},
+					{
+						"item": "viz_k5",
+						"type": "block",
+						"position": {
+							"x": 1160,
+							"y": 70,
+							"w": 280,
+							"h": 110
+						}
+					},
+					{
+						"item": "viz_trend",
+						"type": "block",
+						"position": {
+							"x": 0,
+							"y": 190,
+							"w": 1440,
+							"h": 300
+						}
+					},
+					{
+						"item": "viz_impact",
 						"type": "block",
 						"position": {
 							"x": 0,
 							"y": 500,
-							"w": 1440,
-							"h": 250
+							"w": 700,
+							"h": 200
 						}
 					},
 					{
-						"item": "viz_JR9eccC4",
+						"item": "viz_sessions",
 						"type": "block",
 						"position": {
 							"x": 0,
-							"y": 750,
-							"w": 1440,
-							"h": 250
+							"y": 710,
+							"w": 700,
+							"h": 300
+						}
+					},
+					{
+						"item": "viz_timeline",
+						"type": "block",
+						"position": {
+							"x": 710,
+							"y": 500,
+							"w": 730,
+							"h": 510
 						}
 					}
-				],
-				"options": {
-					"width": 1440,
-					"height": 1005,
-					"display": "auto"
-				}
+				]
 			}
-		}
-	},
-	"description": "",
-	"title": "오류·지연·이벤트 연계 분석 화면 (Demo)",
-	"applicationProperties": {
-		"hideEdit": false,
-		"hideExport": false
+		},
+		"globalInputs": [
+			"input_time"
+		]
 	}
 }
     ]]></definition>

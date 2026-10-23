@@ -1,64 +1,71 @@
 <form version="1.1" theme="light">
-  <label>Auto-cancel 재현용 (패널 30개, 독립 검색)</label>
-  <description>패널마다 별도 검색 job이 생성됩니다 (총 30개). 캔슬 시 상단 표에서 sid를 확인하세요.</description>
-  <fieldset submitButton="false" autoRun="true">
-    <input type="time" token="tr" searchWhenChanged="true">
-      <label>시간 범위</label>
-      <default><earliest>-24h@h</earliest><latest>now</latest></default>
+  <label>Auto-cancel 재현용 (패널 30개, 대용량 검색)</label>
+  <description>원본 이벤트 단계에서 eventstats/rex/dc/transaction/sort 0 등 무거운 연산을 수행합니다. 대상 인덱스와 기간을 키워 패널당 실행 시간을 200초 수준으로 맞추세요. 운영 시간대 부하에 주의하세요.</description>
+  <fieldset submitButton="true" autoRun="false">
+    <input type="text" token="idx">
+      <label>대상 인덱스</label>
+      <default>_internal</default>
+    </input>
+    <input type="time" token="tr">
+      <label>기간</label>
+      <default><earliest>-7d@d</earliest><latest>now</latest></default>
     </input>
   </fieldset>
   <row>
     <panel>
-      <title>패널별 SID / 상태 (캔슬된 sid를 _internal에서 추적할 때 사용)</title>
+      <title>패널별 SID / 상태 / 실행시간(초) / 결과 건수</title>
       <html>
-        <table class="table table-condensed"><thead><tr><th>패널</th><th>SID</th><th>상태</th></tr></thead><tbody><tr><td>p01</td><td>$sid_p01$</td><td>$sid_p01_state$</td></tr><tr><td>p02</td><td>$sid_p02$</td><td>$sid_p02_state$</td></tr><tr><td>p03</td><td>$sid_p03$</td><td>$sid_p03_state$</td></tr><tr><td>p04</td><td>$sid_p04$</td><td>$sid_p04_state$</td></tr><tr><td>p05</td><td>$sid_p05$</td><td>$sid_p05_state$</td></tr><tr><td>p06</td><td>$sid_p06$</td><td>$sid_p06_state$</td></tr><tr><td>p07</td><td>$sid_p07$</td><td>$sid_p07_state$</td></tr><tr><td>p08</td><td>$sid_p08$</td><td>$sid_p08_state$</td></tr><tr><td>p09</td><td>$sid_p09$</td><td>$sid_p09_state$</td></tr><tr><td>p10</td><td>$sid_p10$</td><td>$sid_p10_state$</td></tr><tr><td>p11</td><td>$sid_p11$</td><td>$sid_p11_state$</td></tr><tr><td>p12</td><td>$sid_p12$</td><td>$sid_p12_state$</td></tr><tr><td>p13</td><td>$sid_p13$</td><td>$sid_p13_state$</td></tr><tr><td>p14</td><td>$sid_p14$</td><td>$sid_p14_state$</td></tr><tr><td>p15</td><td>$sid_p15$</td><td>$sid_p15_state$</td></tr><tr><td>p16</td><td>$sid_p16$</td><td>$sid_p16_state$</td></tr><tr><td>p17</td><td>$sid_p17$</td><td>$sid_p17_state$</td></tr><tr><td>p18</td><td>$sid_p18$</td><td>$sid_p18_state$</td></tr><tr><td>p19</td><td>$sid_p19$</td><td>$sid_p19_state$</td></tr><tr><td>p20</td><td>$sid_p20$</td><td>$sid_p20_state$</td></tr><tr><td>p21</td><td>$sid_p21$</td><td>$sid_p21_state$</td></tr><tr><td>p22</td><td>$sid_p22$</td><td>$sid_p22_state$</td></tr><tr><td>p23</td><td>$sid_p23$</td><td>$sid_p23_state$</td></tr><tr><td>p24</td><td>$sid_p24$</td><td>$sid_p24_state$</td></tr><tr><td>p25</td><td>$sid_p25$</td><td>$sid_p25_state$</td></tr><tr><td>p26</td><td>$sid_p26$</td><td>$sid_p26_state$</td></tr><tr><td>p27</td><td>$sid_p27$</td><td>$sid_p27_state$</td></tr><tr><td>p28</td><td>$sid_p28$</td><td>$sid_p28_state$</td></tr><tr><td>p29</td><td>$sid_p29$</td><td>$sid_p29_state$</td></tr><tr><td>p30</td><td>$sid_p30$</td><td>$sid_p30_state$</td></tr></tbody></table>
+        <table class="table table-condensed table-striped"><thead><tr><th>패널</th><th>SID</th><th>상태</th><th>runDuration</th><th>resultCount</th></tr></thead><tbody><tr><td>p01</td><td>$s_p01$</td><td>$s_p01_st$</td><td>$s_p01_rd$</td><td>$s_p01_rc$</td></tr><tr><td>p02</td><td>$s_p02$</td><td>$s_p02_st$</td><td>$s_p02_rd$</td><td>$s_p02_rc$</td></tr><tr><td>p03</td><td>$s_p03$</td><td>$s_p03_st$</td><td>$s_p03_rd$</td><td>$s_p03_rc$</td></tr><tr><td>p04</td><td>$s_p04$</td><td>$s_p04_st$</td><td>$s_p04_rd$</td><td>$s_p04_rc$</td></tr><tr><td>p05</td><td>$s_p05$</td><td>$s_p05_st$</td><td>$s_p05_rd$</td><td>$s_p05_rc$</td></tr><tr><td>p06</td><td>$s_p06$</td><td>$s_p06_st$</td><td>$s_p06_rd$</td><td>$s_p06_rc$</td></tr><tr><td>p07</td><td>$s_p07$</td><td>$s_p07_st$</td><td>$s_p07_rd$</td><td>$s_p07_rc$</td></tr><tr><td>p08</td><td>$s_p08$</td><td>$s_p08_st$</td><td>$s_p08_rd$</td><td>$s_p08_rc$</td></tr><tr><td>p09</td><td>$s_p09$</td><td>$s_p09_st$</td><td>$s_p09_rd$</td><td>$s_p09_rc$</td></tr><tr><td>p10</td><td>$s_p10$</td><td>$s_p10_st$</td><td>$s_p10_rd$</td><td>$s_p10_rc$</td></tr><tr><td>p11</td><td>$s_p11$</td><td>$s_p11_st$</td><td>$s_p11_rd$</td><td>$s_p11_rc$</td></tr><tr><td>p12</td><td>$s_p12$</td><td>$s_p12_st$</td><td>$s_p12_rd$</td><td>$s_p12_rc$</td></tr><tr><td>p13</td><td>$s_p13$</td><td>$s_p13_st$</td><td>$s_p13_rd$</td><td>$s_p13_rc$</td></tr><tr><td>p14</td><td>$s_p14$</td><td>$s_p14_st$</td><td>$s_p14_rd$</td><td>$s_p14_rc$</td></tr><tr><td>p15</td><td>$s_p15$</td><td>$s_p15_st$</td><td>$s_p15_rd$</td><td>$s_p15_rc$</td></tr><tr><td>p16</td><td>$s_p16$</td><td>$s_p16_st$</td><td>$s_p16_rd$</td><td>$s_p16_rc$</td></tr><tr><td>p17</td><td>$s_p17$</td><td>$s_p17_st$</td><td>$s_p17_rd$</td><td>$s_p17_rc$</td></tr><tr><td>p18</td><td>$s_p18$</td><td>$s_p18_st$</td><td>$s_p18_rd$</td><td>$s_p18_rc$</td></tr><tr><td>p19</td><td>$s_p19$</td><td>$s_p19_st$</td><td>$s_p19_rd$</td><td>$s_p19_rc$</td></tr><tr><td>p20</td><td>$s_p20$</td><td>$s_p20_st$</td><td>$s_p20_rd$</td><td>$s_p20_rc$</td></tr><tr><td>p21</td><td>$s_p21$</td><td>$s_p21_st$</td><td>$s_p21_rd$</td><td>$s_p21_rc$</td></tr><tr><td>p22</td><td>$s_p22$</td><td>$s_p22_st$</td><td>$s_p22_rd$</td><td>$s_p22_rc$</td></tr><tr><td>p23</td><td>$s_p23$</td><td>$s_p23_st$</td><td>$s_p23_rd$</td><td>$s_p23_rc$</td></tr><tr><td>p24</td><td>$s_p24$</td><td>$s_p24_st$</td><td>$s_p24_rd$</td><td>$s_p24_rc$</td></tr><tr><td>p25</td><td>$s_p25$</td><td>$s_p25_st$</td><td>$s_p25_rd$</td><td>$s_p25_rc$</td></tr><tr><td>p26</td><td>$s_p26$</td><td>$s_p26_st$</td><td>$s_p26_rd$</td><td>$s_p26_rc$</td></tr><tr><td>p27</td><td>$s_p27$</td><td>$s_p27_st$</td><td>$s_p27_rd$</td><td>$s_p27_rc$</td></tr><tr><td>p28</td><td>$s_p28$</td><td>$s_p28_st$</td><td>$s_p28_rd$</td><td>$s_p28_rc$</td></tr><tr><td>p29</td><td>$s_p29$</td><td>$s_p29_st$</td><td>$s_p29_rd$</td><td>$s_p29_rc$</td></tr><tr><td>p30</td><td>$s_p30$</td><td>$s_p30_st$</td><td>$s_p30_rd$</td><td>$s_p30_rc$</td></tr></tbody></table>
       </html>
     </panel>
   </row>
   <row>
       <panel id="p01">
-        <title>01. splunkd 컴포넌트별 로그 건수</title>
+        <title>01. 원본 eventstats: host별 건수 → 비율</title>
         <table>
           <search>
-            <query>index=_internal sourcetype=splunkd | stats count by component | eventstats sum(count) as total | eval pct=round(count*100/total,2) | sort - count | head 20</query>
+            <query>index=$idx$ | eventstats count as host_cnt by host | eventstats count as total | eval ratio=round(host_cnt*100/total,3) | stats max(ratio) as ratio max(host_cnt) as cnt by host | sort - cnt</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p01">$job.sid$</set></progress>
-            <done><set token="sid_p01_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p01_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p01_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p01">$job.sid$</set><set token="s_p01_st">RUNNING</set></progress>
+            <done><set token="s_p01_st">$job.dispatchState$</set><set token="s_p01_rd">$job.runDuration$</set><set token="s_p01_rc">$job.resultCount$</set></done>
+            <error><set token="s_p01_st">ERROR: $message$</set></error>
+            <fail><set token="s_p01_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p01_st">CANCELLED</set></cancelled>
           </search>
           <option name="count">10</option>
           <option name="drilldown">none</option>
         </table>
       </panel>
       <panel id="p02">
-        <title>02. 로그 레벨별 추이</title>
-        <chart>
-          <search>
-            <query>index=_internal sourcetype=splunkd | timechart count by log_level</query>
-            <earliest>$tr.earliest$</earliest>
-            <latest>$tr.latest$</latest>
-            <progress><set token="sid_p02">$job.sid$</set></progress>
-            <done><set token="sid_p02_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p02_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p02_state">CANCELLED</set></cancelled>
-          </search>
-          <option name="charting.chart">line</option>
-          <option name="charting.legend.placement">bottom</option>
-        </chart>
-      </panel>
-      <panel id="p03">
-        <title>03. 호스트별 이벤트 수</title>
+        <title>02. 원본 eventstats: sourcetype별 평균 길이 초과 이벤트</title>
         <table>
           <search>
-            <query>index=_internal | stats count by host | eventstats sum(count) as total | eval pct=round(count*100/total,2) | sort - count</query>
+            <query>index=$idx$ | eval len=len(_raw) | eventstats avg(len) as avg_len by sourcetype | where len&gt;avg_len | stats count avg(len) as avg_len by sourcetype | sort - count</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p03">$job.sid$</set></progress>
-            <done><set token="sid_p03_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p03_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p03_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p02">$job.sid$</set><set token="s_p02_st">RUNNING</set></progress>
+            <done><set token="s_p02_st">$job.dispatchState$</set><set token="s_p02_rd">$job.runDuration$</set><set token="s_p02_rc">$job.resultCount$</set></done>
+            <error><set token="s_p02_st">ERROR: $message$</set></error>
+            <fail><set token="s_p02_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p02_st">CANCELLED</set></cancelled>
+          </search>
+          <option name="count">10</option>
+          <option name="drilldown">none</option>
+        </table>
+      </panel>
+      <panel id="p03">
+        <title>03. 원본 eventstats: source별 평균 대비 길이</title>
+        <table>
+          <search>
+            <query>index=$idx$ | eval len=len(_raw) | eventstats avg(len) as a stdev(len) as s by source | eval z=if(s&gt;0,(len-a)/s,0) | where z&gt;2 | stats count by source | sort - count | head 30</query>
+            <earliest>$tr.earliest$</earliest>
+            <latest>$tr.latest$</latest>
+            <progress><set token="s_p03">$job.sid$</set><set token="s_p03_st">RUNNING</set></progress>
+            <done><set token="s_p03_st">$job.dispatchState$</set><set token="s_p03_rd">$job.runDuration$</set><set token="s_p03_rc">$job.resultCount$</set></done>
+            <error><set token="s_p03_st">ERROR: $message$</set></error>
+            <fail><set token="s_p03_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p03_st">CANCELLED</set></cancelled>
           </search>
           <option name="count">10</option>
           <option name="drilldown">none</option>
@@ -67,248 +74,263 @@
   </row>
   <row>
       <panel id="p04">
-        <title>04. sourcetype별 이벤트 수</title>
-        <chart>
+        <title>04. 원본 eventstats 다중 by: host×sourcetype</title>
+        <table>
           <search>
-            <query>index=_internal | stats count by sourcetype | sort - count</query>
+            <query>index=$idx$ | eventstats count as c by host sourcetype | eventstats dc(sourcetype) as st_per_host by host | stats max(c) as c max(st_per_host) as st by host sourcetype | sort - c | head 50</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p04">$job.sid$</set></progress>
-            <done><set token="sid_p04_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p04_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p04_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p04">$job.sid$</set><set token="s_p04_st">RUNNING</set></progress>
+            <done><set token="s_p04_st">$job.dispatchState$</set><set token="s_p04_rd">$job.runDuration$</set><set token="s_p04_rc">$job.resultCount$</set></done>
+            <error><set token="s_p04_st">ERROR: $message$</set></error>
+            <fail><set token="s_p04_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p04_st">CANCELLED</set></cancelled>
           </search>
-          <option name="charting.chart">bar</option>
-          <option name="charting.legend.placement">bottom</option>
-        </chart>
+          <option name="count">10</option>
+          <option name="drilldown">none</option>
+        </table>
       </panel>
       <panel id="p05">
-        <title>05. ERROR 상위 컴포넌트</title>
-        <chart>
+        <title>05. _raw 고유값 개수 (dc)</title>
+        <table>
           <search>
-            <query>index=_internal sourcetype=splunkd log_level=ERROR | stats count by component | sort - count | head 15</query>
+            <query>index=$idx$ | stats dc(_raw) as uniq count by sourcetype | eval dup_ratio=round((count-uniq)*100/count,2) | sort - count</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p05">$job.sid$</set></progress>
-            <done><set token="sid_p05_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p05_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p05_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p05">$job.sid$</set><set token="s_p05_st">RUNNING</set></progress>
+            <done><set token="s_p05_st">$job.dispatchState$</set><set token="s_p05_rd">$job.runDuration$</set><set token="s_p05_rc">$job.resultCount$</set></done>
+            <error><set token="s_p05_st">ERROR: $message$</set></error>
+            <fail><set token="s_p05_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p05_st">CANCELLED</set></cancelled>
           </search>
-          <option name="charting.chart">bar</option>
-          <option name="charting.legend.placement">bottom</option>
-        </chart>
+          <option name="count">10</option>
+          <option name="drilldown">none</option>
+        </table>
       </panel>
       <panel id="p06">
-        <title>06. WARN 상위 컴포넌트</title>
-        <chart>
+        <title>06. md5 해시 고유값</title>
+        <table>
           <search>
-            <query>index=_internal sourcetype=splunkd log_level=WARN | stats count by component | sort - count | head 15</query>
+            <query>index=$idx$ | eval h=md5(_raw) | stats dc(h) as uniq count by host | sort - count</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p06">$job.sid$</set></progress>
-            <done><set token="sid_p06_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p06_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p06_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p06">$job.sid$</set><set token="s_p06_st">RUNNING</set></progress>
+            <done><set token="s_p06_st">$job.dispatchState$</set><set token="s_p06_rd">$job.runDuration$</set><set token="s_p06_rc">$job.resultCount$</set></done>
+            <error><set token="s_p06_st">ERROR: $message$</set></error>
+            <fail><set token="s_p06_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p06_st">CANCELLED</set></cancelled>
           </search>
-          <option name="charting.chart">bar</option>
-          <option name="charting.legend.placement">bottom</option>
-        </chart>
+          <option name="count">10</option>
+          <option name="drilldown">none</option>
+        </table>
       </panel>
   </row>
   <row>
       <panel id="p07">
-        <title>07. 인덱스별 처리량(KB)</title>
-        <chart>
+        <title>07. punct 패턴 상위</title>
+        <table>
           <search>
-            <query>index=_internal source=*metrics.log group=per_index_thruput | timechart sum(kb) by series limit=10</query>
+            <query>index=$idx$ | stats count dc(host) as hosts by punct | sort - count | head 30</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p07">$job.sid$</set></progress>
-            <done><set token="sid_p07_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p07_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p07_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p07">$job.sid$</set><set token="s_p07_st">RUNNING</set></progress>
+            <done><set token="s_p07_st">$job.dispatchState$</set><set token="s_p07_rd">$job.runDuration$</set><set token="s_p07_rc">$job.resultCount$</set></done>
+            <error><set token="s_p07_st">ERROR: $message$</set></error>
+            <fail><set token="s_p07_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p07_st">CANCELLED</set></cancelled>
           </search>
-          <option name="charting.chart">area</option>
-          <option name="charting.legend.placement">bottom</option>
-        </chart>
+          <option name="count">10</option>
+          <option name="drilldown">none</option>
+        </table>
       </panel>
       <panel id="p08">
-        <title>08. sourcetype별 처리량(KB)</title>
-        <chart>
+        <title>08. rex 단어 추출 → 고유 단어 수</title>
+        <table>
           <search>
-            <query>index=_internal source=*metrics.log group=per_sourcetype_thruput | timechart sum(kb) by series limit=10</query>
+            <query>index=$idx$ | rex max_match=20 field=_raw "(?&lt;word&gt;[A-Za-z_]{4,})" | mvexpand word | stats dc(word) as words count by sourcetype | sort - words</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p08">$job.sid$</set></progress>
-            <done><set token="sid_p08_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p08_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p08_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p08">$job.sid$</set><set token="s_p08_st">RUNNING</set></progress>
+            <done><set token="s_p08_st">$job.dispatchState$</set><set token="s_p08_rd">$job.runDuration$</set><set token="s_p08_rc">$job.resultCount$</set></done>
+            <error><set token="s_p08_st">ERROR: $message$</set></error>
+            <fail><set token="s_p08_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p08_st">CANCELLED</set></cancelled>
           </search>
-          <option name="charting.chart">area</option>
-          <option name="charting.legend.placement">bottom</option>
-        </chart>
+          <option name="count">10</option>
+          <option name="drilldown">none</option>
+        </table>
       </panel>
       <panel id="p09">
-        <title>09. 호스트별 처리량(KB)</title>
+        <title>09. rex key=value 추출 상위 키</title>
         <chart>
           <search>
-            <query>index=_internal source=*metrics.log group=per_host_thruput | timechart sum(kb) by series limit=10</query>
+            <query>index=$idx$ | rex max_match=30 field=_raw "(?&lt;k&gt;[A-Za-z_]+)=" | mvexpand k | stats count by k | sort - count | head 30</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p09">$job.sid$</set></progress>
-            <done><set token="sid_p09_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p09_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p09_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p09">$job.sid$</set><set token="s_p09_st">RUNNING</set></progress>
+            <done><set token="s_p09_st">$job.dispatchState$</set><set token="s_p09_rd">$job.runDuration$</set><set token="s_p09_rc">$job.resultCount$</set></done>
+            <error><set token="s_p09_st">ERROR: $message$</set></error>
+            <fail><set token="s_p09_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p09_st">CANCELLED</set></cancelled>
           </search>
-          <option name="charting.chart">line</option>
+          <option name="charting.chart">bar</option>
           <option name="charting.legend.placement">bottom</option>
         </chart>
       </panel>
   </row>
   <row>
       <panel id="p10">
-        <title>10. source별 처리량 상위</title>
-        <table>
+        <title>10. 이벤트 길이 분포</title>
+        <chart>
           <search>
-            <query>index=_internal source=*metrics.log group=per_source_thruput | stats sum(kb) as kb by series | sort - kb | head 15</query>
+            <query>index=$idx$ | eval len=len(_raw) | bin len span=200 | stats count by len | sort len</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p10">$job.sid$</set></progress>
-            <done><set token="sid_p10_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p10_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p10_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p10">$job.sid$</set><set token="s_p10_st">RUNNING</set></progress>
+            <done><set token="s_p10_st">$job.dispatchState$</set><set token="s_p10_rd">$job.runDuration$</set><set token="s_p10_rc">$job.resultCount$</set></done>
+            <error><set token="s_p10_st">ERROR: $message$</set></error>
+            <fail><set token="s_p10_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p10_st">CANCELLED</set></cancelled>
+          </search>
+          <option name="charting.chart">column</option>
+          <option name="charting.legend.placement">bottom</option>
+        </chart>
+      </panel>
+      <panel id="p11">
+        <title>11. 시간대×sourcetype 히트맵용</title>
+        <table>
+          <search>
+            <query>index=$idx$ | eval hour=strftime(_time,"%H") | eventstats count as st_total by sourcetype | stats count by hour sourcetype | sort hour</query>
+            <earliest>$tr.earliest$</earliest>
+            <latest>$tr.latest$</latest>
+            <progress><set token="s_p11">$job.sid$</set><set token="s_p11_st">RUNNING</set></progress>
+            <done><set token="s_p11_st">$job.dispatchState$</set><set token="s_p11_rd">$job.runDuration$</set><set token="s_p11_rc">$job.resultCount$</set></done>
+            <error><set token="s_p11_st">ERROR: $message$</set></error>
+            <fail><set token="s_p11_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p11_st">CANCELLED</set></cancelled>
           </search>
           <option name="count">10</option>
           <option name="drilldown">none</option>
         </table>
       </panel>
-      <panel id="p11">
-        <title>11. 큐 사용률</title>
+      <panel id="p12">
+        <title>12. 1분 단위 timechart by host</title>
         <chart>
           <search>
-            <query>index=_internal source=*metrics.log group=queue | eval fill=round(current_size_kb*100/max_size_kb,2) | timechart avg(fill) by name</query>
+            <query>index=$idx$ | timechart span=1m count by host limit=20</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p11">$job.sid$</set></progress>
-            <done><set token="sid_p11_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p11_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p11_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p12">$job.sid$</set><set token="s_p12_st">RUNNING</set></progress>
+            <done><set token="s_p12_st">$job.dispatchState$</set><set token="s_p12_rd">$job.runDuration$</set><set token="s_p12_rc">$job.resultCount$</set></done>
+            <error><set token="s_p12_st">ERROR: $message$</set></error>
+            <fail><set token="s_p12_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p12_st">CANCELLED</set></cancelled>
           </search>
           <option name="charting.chart">line</option>
           <option name="charting.legend.placement">bottom</option>
         </chart>
-      </panel>
-      <panel id="p12">
-        <title>12. 블록된 큐 건수</title>
-        <table>
-          <search>
-            <query>index=_internal source=*metrics.log group=queue blocked=true | stats count by name host</query>
-            <earliest>$tr.earliest$</earliest>
-            <latest>$tr.latest$</latest>
-            <progress><set token="sid_p12">$job.sid$</set></progress>
-            <done><set token="sid_p12_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p12_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p12_state">CANCELLED</set></cancelled>
-          </search>
-          <option name="count">10</option>
-          <option name="drilldown">none</option>
-        </table>
       </panel>
   </row>
   <row>
       <panel id="p13">
-        <title>13. 파이프라인 CPU</title>
+        <title>13. 1분 단위 timechart by sourcetype</title>
         <chart>
           <search>
-            <query>index=_internal source=*metrics.log group=pipeline | timechart sum(cpu_seconds) by processor limit=10</query>
+            <query>index=$idx$ | timechart span=1m count by sourcetype limit=20</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p13">$job.sid$</set></progress>
-            <done><set token="sid_p13_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p13_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p13_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p13">$job.sid$</set><set token="s_p13_st">RUNNING</set></progress>
+            <done><set token="s_p13_st">$job.dispatchState$</set><set token="s_p13_rd">$job.runDuration$</set><set token="s_p13_rc">$job.resultCount$</set></done>
+            <error><set token="s_p13_st">ERROR: $message$</set></error>
+            <fail><set token="s_p13_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p13_st">CANCELLED</set></cancelled>
           </search>
-          <option name="charting.chart">line</option>
+          <option name="charting.chart">area</option>
           <option name="charting.legend.placement">bottom</option>
         </chart>
       </panel>
       <panel id="p14">
-        <title>14. 사용자별 동시 검색</title>
-        <chart>
+        <title>14. streamstats 이벤트 간격(초)</title>
+        <table>
           <search>
-            <query>index=_internal source=*metrics.log group=search_concurrency NOT "system total" | timechart span=1m max(active_hist_searches) by user</query>
+            <query>index=$idx$ | sort 0 host _time | streamstats current=f last(_time) as prev by host | eval gap=_time-prev | stats avg(gap) max(gap) p95(gap) by host</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p14">$job.sid$</set></progress>
-            <done><set token="sid_p14_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p14_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p14_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p14">$job.sid$</set><set token="s_p14_st">RUNNING</set></progress>
+            <done><set token="s_p14_st">$job.dispatchState$</set><set token="s_p14_rd">$job.runDuration$</set><set token="s_p14_rc">$job.resultCount$</set></done>
+            <error><set token="s_p14_st">ERROR: $message$</set></error>
+            <fail><set token="s_p14_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p14_st">CANCELLED</set></cancelled>
           </search>
-          <option name="charting.chart">line</option>
-          <option name="charting.legend.placement">bottom</option>
-        </chart>
+          <option name="count">10</option>
+          <option name="drilldown">none</option>
+        </table>
       </panel>
       <panel id="p15">
-        <title>15. 전체 동시 검색</title>
+        <title>15. streamstats 누적 건수</title>
         <chart>
           <search>
-            <query>index=_internal source=*metrics.log group=search_concurrency "system total" | timechart span=1m max(active_hist_searches) as hist max(active_realtime_searches) as rt</query>
+            <query>index=$idx$ | streamstats count as running by sourcetype | stats max(running) as total by sourcetype | sort - total</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p15">$job.sid$</set></progress>
-            <done><set token="sid_p15_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p15_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p15_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p15">$job.sid$</set><set token="s_p15_st">RUNNING</set></progress>
+            <done><set token="s_p15_st">$job.dispatchState$</set><set token="s_p15_rd">$job.runDuration$</set><set token="s_p15_rc">$job.resultCount$</set></done>
+            <error><set token="s_p15_st">ERROR: $message$</set></error>
+            <fail><set token="s_p15_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p15_st">CANCELLED</set></cancelled>
           </search>
-          <option name="charting.chart">line</option>
+          <option name="charting.chart">bar</option>
           <option name="charting.legend.placement">bottom</option>
         </chart>
       </panel>
   </row>
   <row>
       <panel id="p16">
-        <title>16. Queued job 로그</title>
+        <title>16. transaction host maxspan=1m</title>
         <table>
           <search>
-            <query>index=_internal sourcetype=splunkd component=DispatchManager "Queued job" | stats count by host | sort - count</query>
+            <query>index=$idx$ | transaction host maxspan=1m maxevents=500 | stats avg(eventcount) as avg_ev avg(duration) as avg_dur count by host</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p16">$job.sid$</set></progress>
-            <done><set token="sid_p16_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p16_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p16_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p16">$job.sid$</set><set token="s_p16_st">RUNNING</set></progress>
+            <done><set token="s_p16_st">$job.dispatchState$</set><set token="s_p16_rd">$job.runDuration$</set><set token="s_p16_rc">$job.resultCount$</set></done>
+            <error><set token="s_p16_st">ERROR: $message$</set></error>
+            <fail><set token="s_p16_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p16_st">CANCELLED</set></cancelled>
           </search>
           <option name="count">10</option>
           <option name="drilldown">none</option>
         </table>
       </panel>
       <panel id="p17">
-        <title>17. search auto-canceled 발생</title>
+        <title>17. dedup source+punct</title>
         <chart>
           <search>
-            <query>index=_internal source=*search_messages.log "auto-canceled" | timechart count</query>
+            <query>index=$idx$ | dedup source punct | stats count by sourcetype | sort - count</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p17">$job.sid$</set></progress>
-            <done><set token="sid_p17_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p17_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p17_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p17">$job.sid$</set><set token="s_p17_st">RUNNING</set></progress>
+            <done><set token="s_p17_st">$job.dispatchState$</set><set token="s_p17_rd">$job.runDuration$</set><set token="s_p17_rc">$job.resultCount$</set></done>
+            <error><set token="s_p17_st">ERROR: $message$</set></error>
+            <fail><set token="s_p17_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p17_st">CANCELLED</set></cancelled>
           </search>
-          <option name="charting.chart">column</option>
+          <option name="charting.chart">bar</option>
           <option name="charting.legend.placement">bottom</option>
         </chart>
       </panel>
       <panel id="p18">
-        <title>18. 검색 메시지 상위</title>
+        <title>18. sort 0 전체 정렬 후 상위</title>
         <table>
           <search>
-            <query>index=_internal source=*search_messages.log | rex "message=(?&lt;msg&gt;.+)$" | stats count by msg | sort - count | head 20</query>
+            <query>index=$idx$ | eval len=len(_raw) | sort 0 - len | head 100 | table _time host sourcetype len</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p18">$job.sid$</set></progress>
-            <done><set token="sid_p18_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p18_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p18_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p18">$job.sid$</set><set token="s_p18_st">RUNNING</set></progress>
+            <done><set token="s_p18_st">$job.dispatchState$</set><set token="s_p18_rd">$job.runDuration$</set><set token="s_p18_rc">$job.resultCount$</set></done>
+            <error><set token="s_p18_st">ERROR: $message$</set></error>
+            <fail><set token="s_p18_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p18_st">CANCELLED</set></cancelled>
           </search>
           <option name="count">10</option>
           <option name="drilldown">none</option>
@@ -317,98 +339,157 @@
   </row>
   <row>
       <panel id="p19">
-        <title>19. Splunk Web 요청 상태코드</title>
-        <chart>
-          <search>
-            <query>index=_internal sourcetype=splunk_web_access | timechart count by status</query>
-            <earliest>$tr.earliest$</earliest>
-            <latest>$tr.latest$</latest>
-            <progress><set token="sid_p19">$job.sid$</set></progress>
-            <done><set token="sid_p19_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p19_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p19_state">CANCELLED</set></cancelled>
-          </search>
-          <option name="charting.chart">column</option>
-          <option name="charting.legend.placement">bottom</option>
-        </chart>
-      </panel>
-      <panel id="p20">
-        <title>20. Splunk Web 응답시간 상위 URI</title>
+        <title>19. percentile 길이 by source</title>
         <table>
           <search>
-            <query>index=_internal sourcetype=splunk_web_access | stats avg(spent) as avg_ms max(spent) as max_ms count by uri_path | sort - avg_ms | head 20</query>
+            <query>index=$idx$ | eval len=len(_raw) | stats p50(len) p90(len) p99(len) max(len) count by source | sort - count | head 30</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p20">$job.sid$</set></progress>
-            <done><set token="sid_p20_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p20_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p20_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p19">$job.sid$</set><set token="s_p19_st">RUNNING</set></progress>
+            <done><set token="s_p19_st">$job.dispatchState$</set><set token="s_p19_rd">$job.runDuration$</set><set token="s_p19_rc">$job.resultCount$</set></done>
+            <error><set token="s_p19_st">ERROR: $message$</set></error>
+            <fail><set token="s_p19_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p19_st">CANCELLED</set></cancelled>
+          </search>
+          <option name="count">10</option>
+          <option name="drilldown">none</option>
+        </table>
+      </panel>
+      <panel id="p20">
+        <title>20. 멀티라인 이벤트</title>
+        <table>
+          <search>
+            <query>index=$idx$ | where linecount&gt;1 | eventstats avg(linecount) as avg_lc by sourcetype | stats count max(linecount) as max_lc max(avg_lc) as avg_lc by sourcetype</query>
+            <earliest>$tr.earliest$</earliest>
+            <latest>$tr.latest$</latest>
+            <progress><set token="s_p20">$job.sid$</set><set token="s_p20_st">RUNNING</set></progress>
+            <done><set token="s_p20_st">$job.dispatchState$</set><set token="s_p20_rd">$job.runDuration$</set><set token="s_p20_rc">$job.resultCount$</set></done>
+            <error><set token="s_p20_st">ERROR: $message$</set></error>
+            <fail><set token="s_p20_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p20_st">CANCELLED</set></cancelled>
           </search>
           <option name="count">10</option>
           <option name="drilldown">none</option>
         </table>
       </panel>
       <panel id="p21">
-        <title>21. splunkd REST 상태코드</title>
+        <title>21. ERROR/WARN 문자열 검출</title>
         <chart>
           <search>
-            <query>index=_internal sourcetype=splunkd_access | timechart count by status</query>
+            <query>index=$idx$ | eval sev=case(match(_raw,"(?i)error|fail|exception"),"ERROR",match(_raw,"(?i)warn"),"WARN",true(),"OTHER") | timechart span=10m count by sev</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p21">$job.sid$</set></progress>
-            <done><set token="sid_p21_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p21_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p21_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p21">$job.sid$</set><set token="s_p21_st">RUNNING</set></progress>
+            <done><set token="s_p21_st">$job.dispatchState$</set><set token="s_p21_rd">$job.runDuration$</set><set token="s_p21_rc">$job.resultCount$</set></done>
+            <error><set token="s_p21_st">ERROR: $message$</set></error>
+            <fail><set token="s_p21_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p21_st">CANCELLED</set></cancelled>
           </search>
-          <option name="charting.chart">column</option>
+          <option name="charting.chart">line</option>
           <option name="charting.legend.placement">bottom</option>
         </chart>
       </panel>
   </row>
   <row>
       <panel id="p22">
-        <title>22. splunkd REST 느린 요청</title>
+        <title>22. ERROR 이벤트 punct 상위</title>
         <table>
           <search>
-            <query>index=_internal sourcetype=splunkd_access | stats avg(spent) as avg_ms max(spent) as max_ms count by method | eventstats sum(count) as total | eval pct=round(count*100/total,2)</query>
+            <query>index=$idx$ | regex _raw="(?i)error|exception" | stats count by punct sourcetype | sort - count | head 30</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p22">$job.sid$</set></progress>
-            <done><set token="sid_p22_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p22_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p22_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p22">$job.sid$</set><set token="s_p22_st">RUNNING</set></progress>
+            <done><set token="s_p22_st">$job.dispatchState$</set><set token="s_p22_rd">$job.runDuration$</set><set token="s_p22_rc">$job.resultCount$</set></done>
+            <error><set token="s_p22_st">ERROR: $message$</set></error>
+            <fail><set token="s_p22_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p22_st">CANCELLED</set></cancelled>
           </search>
           <option name="count">10</option>
           <option name="drilldown">none</option>
         </table>
       </panel>
       <panel id="p23">
-        <title>23. UI access 사용자별 요청</title>
-        <chart>
+        <title>23. IP 패턴 추출 상위</title>
+        <table>
           <search>
-            <query>index=_internal sourcetype=splunkd_ui_access | stats count by user | sort - count</query>
+            <query>index=$idx$ | rex max_match=5 field=_raw "(?&lt;ip&gt;\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})" | mvexpand ip | stats count dc(host) as hosts by ip | sort - count | head 30</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p23">$job.sid$</set></progress>
-            <done><set token="sid_p23_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p23_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p23_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p23">$job.sid$</set><set token="s_p23_st">RUNNING</set></progress>
+            <done><set token="s_p23_st">$job.dispatchState$</set><set token="s_p23_rd">$job.runDuration$</set><set token="s_p23_rc">$job.resultCount$</set></done>
+            <error><set token="s_p23_st">ERROR: $message$</set></error>
+            <fail><set token="s_p23_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p23_st">CANCELLED</set></cancelled>
           </search>
-          <option name="charting.chart">bar</option>
+          <option name="count">10</option>
+          <option name="drilldown">none</option>
+        </table>
+      </panel>
+      <panel id="p24">
+        <title>24. 숫자 토큰 통계</title>
+        <table>
+          <search>
+            <query>index=$idx$ | rex max_match=20 field=_raw "(?&lt;num&gt;\b\d{3,}\b)" | eval n=mvcount(num) | stats avg(n) max(n) sum(n) by sourcetype</query>
+            <earliest>$tr.earliest$</earliest>
+            <latest>$tr.latest$</latest>
+            <progress><set token="s_p24">$job.sid$</set><set token="s_p24_st">RUNNING</set></progress>
+            <done><set token="s_p24_st">$job.dispatchState$</set><set token="s_p24_rd">$job.runDuration$</set><set token="s_p24_rc">$job.resultCount$</set></done>
+            <error><set token="s_p24_st">ERROR: $message$</set></error>
+            <fail><set token="s_p24_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p24_st">CANCELLED</set></cancelled>
+          </search>
+          <option name="count">10</option>
+          <option name="drilldown">none</option>
+        </table>
+      </panel>
+  </row>
+  <row>
+      <panel id="p25">
+        <title>25. 일자별 host 수 / source 수</title>
+        <chart>
+          <search>
+            <query>index=$idx$ | bin _time span=1d | stats dc(host) as hosts dc(source) as sources count by _time</query>
+            <earliest>$tr.earliest$</earliest>
+            <latest>$tr.latest$</latest>
+            <progress><set token="s_p25">$job.sid$</set><set token="s_p25_st">RUNNING</set></progress>
+            <done><set token="s_p25_st">$job.dispatchState$</set><set token="s_p25_rd">$job.runDuration$</set><set token="s_p25_rc">$job.resultCount$</set></done>
+            <error><set token="s_p25_st">ERROR: $message$</set></error>
+            <fail><set token="s_p25_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p25_st">CANCELLED</set></cancelled>
+          </search>
+          <option name="charting.chart">column</option>
           <option name="charting.legend.placement">bottom</option>
         </chart>
       </panel>
-      <panel id="p24">
-        <title>24. 스케줄러 상태</title>
-        <chart>
+      <panel id="p26">
+        <title>26. host별 first/last 시각</title>
+        <table>
           <search>
-            <query>index=_internal sourcetype=scheduler | stats count by status</query>
+            <query>index=$idx$ | stats earliest(_time) as first latest(_time) as last count by host source | eval span_h=round((last-first)/3600,1) | sort - count | head 50 | convert ctime(first) ctime(last)</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p24">$job.sid$</set></progress>
-            <done><set token="sid_p24_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p24_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p24_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p26">$job.sid$</set><set token="s_p26_st">RUNNING</set></progress>
+            <done><set token="s_p26_st">$job.dispatchState$</set><set token="s_p26_rd">$job.runDuration$</set><set token="s_p26_rc">$job.resultCount$</set></done>
+            <error><set token="s_p26_st">ERROR: $message$</set></error>
+            <fail><set token="s_p26_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p26_st">CANCELLED</set></cancelled>
+          </search>
+          <option name="count">10</option>
+          <option name="drilldown">none</option>
+        </table>
+      </panel>
+      <panel id="p27">
+        <title>27. eventstats 후 상위 비율 sourcetype</title>
+        <chart>
+          <search>
+            <query>index=$idx$ | eventstats count as total | stats count max(total) as total by sourcetype | eval pct=round(count*100/total,2) | sort - pct</query>
+            <earliest>$tr.earliest$</earliest>
+            <latest>$tr.latest$</latest>
+            <progress><set token="s_p27">$job.sid$</set><set token="s_p27_st">RUNNING</set></progress>
+            <done><set token="s_p27_st">$job.dispatchState$</set><set token="s_p27_rd">$job.runDuration$</set><set token="s_p27_rc">$job.resultCount$</set></done>
+            <error><set token="s_p27_st">ERROR: $message$</set></error>
+            <fail><set token="s_p27_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p27_st">CANCELLED</set></cancelled>
           </search>
           <option name="charting.chart">pie</option>
           <option name="charting.legend.placement">bottom</option>
@@ -416,103 +497,56 @@
       </panel>
   </row>
   <row>
-      <panel id="p25">
-        <title>25. 스케줄 검색 실행시간 상위</title>
-        <table>
-          <search>
-            <query>index=_internal sourcetype=scheduler status=success | stats avg(run_time) as avg_rt max(run_time) as max_rt count by savedsearch_name | sort - avg_rt | head 20</query>
-            <earliest>$tr.earliest$</earliest>
-            <latest>$tr.latest$</latest>
-            <progress><set token="sid_p25">$job.sid$</set></progress>
-            <done><set token="sid_p25_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p25_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p25_state">CANCELLED</set></cancelled>
-          </search>
-          <option name="count">10</option>
-          <option name="drilldown">none</option>
-        </table>
-      </panel>
-      <panel id="p26">
-        <title>26. 스킵된 스케줄 검색 사유</title>
-        <table>
-          <search>
-            <query>index=_internal sourcetype=scheduler status=skipped | stats count by reason | sort - count</query>
-            <earliest>$tr.earliest$</earliest>
-            <latest>$tr.latest$</latest>
-            <progress><set token="sid_p26">$job.sid$</set></progress>
-            <done><set token="sid_p26_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p26_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p26_state">CANCELLED</set></cancelled>
-          </search>
-          <option name="count">10</option>
-          <option name="drilldown">none</option>
-        </table>
-      </panel>
-      <panel id="p27">
-        <title>27. 라이선스 사용량(MB)</title>
+      <panel id="p28">
+        <title>28. 10분 단위 이동평균</title>
         <chart>
           <search>
-            <query>index=_internal source=*license_usage.log type=Usage | eval MB=b/1024/1024 | timechart sum(MB) by st limit=10</query>
+            <query>index=$idx$ | timechart span=10m count | trendline sma6(count) as sma</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p27">$job.sid$</set></progress>
-            <done><set token="sid_p27_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p27_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p27_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p28">$job.sid$</set><set token="s_p28_st">RUNNING</set></progress>
+            <done><set token="s_p28_st">$job.dispatchState$</set><set token="s_p28_rd">$job.runDuration$</set><set token="s_p28_rc">$job.resultCount$</set></done>
+            <error><set token="s_p28_st">ERROR: $message$</set></error>
+            <fail><set token="s_p28_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p28_st">CANCELLED</set></cancelled>
           </search>
-          <option name="charting.chart">area</option>
+          <option name="charting.chart">line</option>
           <option name="charting.legend.placement">bottom</option>
         </chart>
       </panel>
-  </row>
-  <row>
-      <panel id="p28">
-        <title>28. TCP 입력 연결</title>
-        <table>
-          <search>
-            <query>index=_internal source=*metrics.log group=tcpin_connections | stats sum(kb) as kb dc(sourceIp) as sources by host</query>
-            <earliest>$tr.earliest$</earliest>
-            <latest>$tr.latest$</latest>
-            <progress><set token="sid_p28">$job.sid$</set></progress>
-            <done><set token="sid_p28_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p28_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p28_state">CANCELLED</set></cancelled>
-          </search>
-          <option name="count">10</option>
-          <option name="drilldown">none</option>
-        </table>
-      </panel>
       <panel id="p29">
-        <title>29. 컴포넌트×레벨 분포</title>
+        <title>29. host×date_hour 이벤트 표준편차</title>
         <table>
           <search>
-            <query>index=_internal sourcetype=splunkd | stats count by component log_level | eventstats sum(count) as comp_total by component | eval pct=round(count*100/comp_total,2) | sort - comp_total | head 30</query>
+            <query>index=$idx$ | eval hour=strftime(_time,"%H") | stats count by host hour | eventstats avg(count) as avg stdev(count) as sd by host | eval z=round((count-avg)/sd,2) | where abs(z)&gt;2 | sort - z</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p29">$job.sid$</set></progress>
-            <done><set token="sid_p29_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p29_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p29_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p29">$job.sid$</set><set token="s_p29_st">RUNNING</set></progress>
+            <done><set token="s_p29_st">$job.dispatchState$</set><set token="s_p29_rd">$job.runDuration$</set><set token="s_p29_rc">$job.resultCount$</set></done>
+            <error><set token="s_p29_st">ERROR: $message$</set></error>
+            <fail><set token="s_p29_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p29_st">CANCELLED</set></cancelled>
           </search>
           <option name="count">10</option>
           <option name="drilldown">none</option>
         </table>
       </panel>
       <panel id="p30">
-        <title>30. 시간대별 이벤트 분포</title>
-        <chart>
+        <title>30. 종합: 원본 eventstats 3단</title>
+        <table>
           <search>
-            <query>index=_internal | eval hour=strftime(_time,"%H") | stats count by hour | sort hour</query>
+            <query>index=$idx$ | eval len=len(_raw) | eventstats avg(len) as a1 by host | eventstats avg(len) as a2 by sourcetype | eventstats avg(len) as a3 by source | eval d=abs(len-a1)+abs(len-a2)+abs(len-a3) | stats avg(d) as avg_dev count by sourcetype | sort - avg_dev</query>
             <earliest>$tr.earliest$</earliest>
             <latest>$tr.latest$</latest>
-            <progress><set token="sid_p30">$job.sid$</set></progress>
-            <done><set token="sid_p30_state">$job.dispatchState$ ($job.runDuration$s)</set></done>
-            <error><set token="sid_p30_state">ERROR: $message$</set></error>
-            <cancelled><set token="sid_p30_state">CANCELLED</set></cancelled>
+            <progress><set token="s_p30">$job.sid$</set><set token="s_p30_st">RUNNING</set></progress>
+            <done><set token="s_p30_st">$job.dispatchState$</set><set token="s_p30_rd">$job.runDuration$</set><set token="s_p30_rc">$job.resultCount$</set></done>
+            <error><set token="s_p30_st">ERROR: $message$</set></error>
+            <fail><set token="s_p30_st">FAIL: $message$</set></fail>
+            <cancelled><set token="s_p30_st">CANCELLED</set></cancelled>
           </search>
-          <option name="charting.chart">column</option>
-          <option name="charting.legend.placement">bottom</option>
-        </chart>
+          <option name="count">10</option>
+          <option name="drilldown">none</option>
+        </table>
       </panel>
   </row>
 </form>
